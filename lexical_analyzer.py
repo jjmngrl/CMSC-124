@@ -151,7 +151,7 @@ def main():
     """
     text = read()
     classified_tokens = classifier(text)
-    print(classified_tokens)
+    # print(classified_tokens)
     # Print the classified tokens dictionary
     for line_num, classifications in sorted(classified_tokens.items()):
         formatted_classifications = ', '.join(
