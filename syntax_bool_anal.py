@@ -1,4 +1,4 @@
-from lexical_analyzer import *
+# from lexical_analyzer import *
 
 """
 Function to check if the lol code starts with HAI and ends with KTHXBYE
