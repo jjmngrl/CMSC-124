@@ -4,7 +4,7 @@ def validate_expression(expression_tokens, classified_tokens):
     local_flag = True  # Track errors locally within the function
 
     for token, token_type in expression_tokens:
-        print(f"Processing token: {token}, type: {token_type}")
+        # print(f"Processing token: {token}, type: {token_type}")
         
         if token in valid_operations and token_type == "KEYWORD":
             stack.append((token, "operation"))
@@ -33,7 +33,7 @@ def validate_expression(expression_tokens, classified_tokens):
                 operand2 = stack[-1][0]
                 reduced_expression = f"{operation} {operand1} AN {operand2}"
                 stack = stack[:-4] + [(reduced_expression, "operand")]
-                print(f"Reduced (comparison): {reduced_expression}")
+                # print(f"Reduced (comparison): {reduced_expression}")
 
             # Handle other patterns (nested operations, binary operations)
             elif len(stack) >= 5 and stack[-5][1] == "operation" and stack[-4][1] == "operand" and stack[-3][1] == "keyword" and stack[-2][1] == "operand" and stack[-1][1] == "keyword":
@@ -42,7 +42,7 @@ def validate_expression(expression_tokens, classified_tokens):
                 operand2 = stack[-2][0]
                 reduced_expression = f"{operation} {operand1} AN {operand2}"
                 stack = stack[:-5] + [(reduced_expression, "operand")]
-                print(f"Reduced (nested): {reduced_expression}")
+                # print(f"Reduced (nested): {reduced_expression}")
 
             elif len(stack) >= 3 and stack[-3][1] == "operation" and stack[-2][1] == "operand" and stack[-1][1] == "operand":
                 operation = stack[-3][0]
@@ -50,12 +50,12 @@ def validate_expression(expression_tokens, classified_tokens):
                 operand2 = stack[-1][0]
                 reduced_expression = f"{operation} {operand1} AN {operand2}"
                 stack = stack[:-3] + [(reduced_expression, "operand")]
-                print(f"Reduced (binary): {reduced_expression}")
+                # print(f"Reduced (binary): {reduced_expression}")
 
             else:
                 break
 
-        print(f"Current stack: {stack}")
+        # print(f"Current stack: {stack}")
 
     # Final validation of the stack
     if len(stack) == 1 and stack[0][1] == "operand" and local_flag:

@@ -37,7 +37,7 @@ def read():
                 # Handle single-line comments
                 if "BTW" in line:
                     line = line.split("BTW")[0].strip()
-                
+                                 
                 # Add non-empty lines to data
                 data.append(line)  # Keep empty lines to track them
             return data
@@ -191,8 +191,8 @@ def lex_main():
         formatted_classifications = ', '.join(
             [f"[{repr(token)}, {repr(classification)}]" for token, classification in classifications]
         )
-        print(f"Line {line_num}: {formatted_classifications}")
+    #     print(f"Line {line_num}: {formatted_classifications}") 
         
-        return classified_tokens
+    return classified_tokens
 
 lex_main()

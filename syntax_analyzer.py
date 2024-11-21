@@ -39,22 +39,11 @@ def main():
     # Sort results by line numbers where applicable and print
     sorted_result = sorted(result, key=lambda x: int(x[0].split()[1].strip(':')) if "Line" in x[0] else float('inf'))
     
-     # Create a dictionary to map line numbers to messages
-    line_messages = {int(x[0].split()[1].strip(':')): x[1] for x in sorted_result if "Line" in x[0]}
+    # Print each element of the tuple on a new line
+    for message in sorted_result:
+        print(message[0])  # First element of the tuple (e.g., "HAI found")
+        print(message[1])  # Second element of the tuple (e.g., "Program starts here.")
+        print()  # Blank line for better readability
 
-    # Print each line, even if it is empty
-    for line_num in range(1, max(classified_tokens.keys()) + 1):
-        if line_num in classified_tokens:
-            classifications = classified_tokens[line_num]
-            formatted_classifications = ', '.join(
-                [f"[{repr(token)}, {repr(classification)}]" for token, classification in classifications]
-            )
-            print(f"Line {line_num}: {formatted_classifications}")
-            if line_num in line_messages:
-                print(line_messages[line_num])
-        else:
-            print(f"Line {line_num}: ")
-            if line_num in line_messages:
-                print(line_messages[line_num])
 
 main()
