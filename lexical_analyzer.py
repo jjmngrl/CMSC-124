@@ -1,15 +1,21 @@
 """
-Lexical Analyzer for LOLCODE
+-----------------------------------------------------------------------------------------
+THIS IS A PYTHON IMPLEMENTATION OF A LEXICAL ANALYZER FOR LOLCODE.
+-----------------------------------------------------------------------------------------
 """
 
 import re
 
+"""
+-----------------------------------------------------------------------------------------
+Reads a LOLCODE file and removes comments and empty lines.
+@return: 
+    List of cleaned lines from the LOLCODE file.
+-----------------------------------------------------------------------------------------
+"""
+
 def read():
-    """
-    Reads a LOLCODE file and removes comments and empty lines.
-    :return: List of cleaned lines from the LOLCODE file.
-    """
-    file = "01_variables.lol"
+    file = r"test case/01_variables.lol"
     if file.endswith(".lol"):
         with open(file, 'r') as f:
             lines = f.readlines()
@@ -36,69 +42,72 @@ def read():
                 data.append(line)  # Keep empty lines to track them
             return data
 
-
+"""
+-----------------------------------------------------------------------------------------
+Classifies tokens in LOLCODE lines into various types.
+@param: 
+    List of cleaned LOLCODE lines.
+@return: 
+    Dictionary where keys are line numbers and values are lists of token classifications.
+-----------------------------------------------------------------------------------------
+"""
 def classifier(lines):
-    """
-    Classifies tokens in LOLCODE lines into various types.
-    :param lines: List of cleaned LOLCODE lines.
-    :return: Dictionary where keys are line numbers and values are lists of token classifications.
-    """
     dict_matching = {
         # Keywords
         "KEYWORD": [
-            r"\bI HAS A\b",
-            r"\bITZ\b",
-            r"\bIF U SAY SO\b",
-            r"\bIM OUTTA YR\b",
-            r"\bQUOSHUNT OF\b",
-            r"\bPRODUKT OF\b",
-            r"\bBOTH SAEM\b",
-            r"\bEITHER OF\b",
-            r"\bSMALLR OF\b",
-            r"\bBIGGR OF\b",
-            r"\bDIFFRINT\b",
-            r"\bFOUND YR\b",
-            r"\bHOW IZ I\b",
-            r"\bIM IN YR\b",
-            r"\bIS NOW A\b",
-            r"\bBOTH OF\b",
-            r"\bDIFF OF\b",
-            r"\bKTHXBYE\b",
-            r"\bVISIBLE\b",
-            r"\bALL OF\b",
-            r"\bANY OF\b",
-            r"\bGIMMEH\b",
-            r"\bMOD OF\b",
-            r"\bNERFIN\b",
-            r"\bNO WAI\b",
-            r"\bNUMBAR\b",
+            r"I HAS A",
+            r"ITZ",
+            r"IF U SAY SO",
+            r"IM OUTTA YR",
+            r"QUOSHUNT OF",
+            r"PRODUKT OF",
+            r"BOTH SAEM",
+            r"EITHER OF",
+            r"SMALLR OF",
+            r"BIGGR OF",
+            r"DIFFRINT",
+            r"FOUND YR",
+            r"HOW IZ I",
+            r"IM IN YR",
+            r"IS NOW A",
+            r"BOTH OF",
+            r"DIFF OF",
+            r"KTHXBYE",
+            r"VISIBLE",
+            r"ALL OF",
+            r"ANY OF",
+            r"GIMMEH",
+            r"MOD OF",
+            r"NERFIN",
+            r"NO WAI",
+            r"NUMBAR",
             "O RLY\?",
-            r"\bOMGWTF\b",
-            r"\bSMOOSH\b",
-            r"\bSUM OF\b",
-            r"\bWON OF\b",
-            r"\bYA RLY\b",
-            r"\bMEBBE\b",
-            r"\bNUMBR\b",
-            r"\bTROOF\b",
-            r"\bUPPIN\b",
-            r"\bWAZZUP\b",
-            r"\bBUHBYE\b",
-            r"\bGTFO\b",
-            r"\bMAEK\b",
-            r"\bMKAY\b",
-            r"\bNOOB\b",
-            r"\bWILE\b",
+            r"OMGWTF",
+            r"SMOOSH",
+            r"SUM OF",
+            r"WON OF",
+            r"YA RLY",
+            r"MEBBE",
+            r"NUMBR",
+            r"TROOF",
+            r"UPPIN",
+            r"WAZZUP",
+            r"BUHBYE",
+            r"GTFO",
+            r"MAEK",
+            r"MKAY",
+            r"NOOB",
+            r"WILE",
             "WTF\?",
-            r"\bYARN\b",
-            r"\bHAI\b",
-            r"\bNOT\b",
-            r"\bOIC\b",
-            r"\bOMG\b",
-            r"\bTIL\b",
-            r"\bAN\b",
-            r"\bYR\b",
-            r"\bR\b"
+            r"YARN",
+            r"HAI",
+            r"NOT",
+            r"OIC",
+            r"OMG",
+            r"TIL",
+            r"AN",
+            r"YR",
+            r"R"
         ],
         # Literals
         "NUMBR": r"^-?\d+$",
@@ -113,55 +122,46 @@ def classifier(lines):
 
     for line_num, line in enumerate(lines, start=1):
         tokens_with_classifications = []
-        yarn_literal = False  # Tracks if we are inside a YARN literal
-        yarn_buffer = ""  # Buffer for multi-token YARNs
+        tokens = line.split()  # Split the line into tokens
 
-        # Check for multi-word keywords first
-        for keyword in dict_matching["KEYWORD"]:
-            matches = re.findall(keyword, line)
-            if matches:
-                for match in matches:
-                    tokens_with_classifications.append([match, "KEYWORD"])
-                    line = line.replace(match, "").strip()  # Remove matched keyword from line
-
-        # Split the remaining line into tokens
-        tokens = line.split()
-        for token in tokens:
-            # Syntax error check for tokens that are all uppercase letters but not keywords
-            if re.fullmatch(r"[A-Z]+", token):  # Match one or more uppercase letters
-                if token not in dict_matching["KEYWORD"]:  # Check if it's not a valid keyword
-                    if not re.fullmatch(dict_matching["TROOF"], token):  # Exclude TROOF literals
-                        print(f"Syntax error in Line {line_num}: '{token}' is a typo or not a keyword")
-                        return classified_lines  # Stop processing and return the results so far
+        index = 0
+        while index < len(tokens):
+            token = tokens[index]
+            matched = False
 
             # Handle YARN literals
-            if token.startswith('"') or yarn_literal:
-                # Start or continuation of a YARN literal
-                yarn_buffer += f" {token}" if yarn_literal else token
-                yarn_literal = not token.endswith('"')  # Flip flag if it ends with a closing quote
-                if not yarn_literal:  # Completed YARN literal
-                    tokens_with_classifications.append([yarn_buffer.strip(), "YARN"])
-                    yarn_buffer = ""
+            if token.startswith('"'):
+                yarn_buffer = token
+                while not token.endswith('"') and index + 1 < len(tokens):
+                    index += 1
+                    token = tokens[index]
+                    yarn_buffer += f" {token}"
+                tokens_with_classifications.append([yarn_buffer.strip(), "YARN"])
+                index += 1
                 continue
 
-            # Match token with defined patterns
-            matched = False
+            # Match multi-word keywords first
+            for keyword in dict_matching["KEYWORD"]:
+                keyword_parts = keyword.split()
+                if tokens[index:index + len(keyword_parts)] == keyword_parts:
+                    tokens_with_classifications.append([" ".join(keyword_parts), "KEYWORD"])
+                    index += len(keyword_parts)
+                    matched = True
+                    break
+
+            if matched:
+                continue
+
+            # Match single-word patterns
             for lexeme_type, pattern in dict_matching.items():
                 if lexeme_type == "KEYWORD":
-                    # Match multi-word keywords (already handled separately)
-                    for keyword in pattern:
-                        if re.fullmatch(keyword, token):
-                            tokens_with_classifications.append([token, "KEYWORD"])
-                            matched = True
-                            break
-                    if matched:
-                        break  # Exit if keyword matched
-                elif re.fullmatch(pattern, token):  # Match single regex patterns
+                    continue  # Skip multi-word keywords; already handled
+                if re.fullmatch(pattern, token):
                     tokens_with_classifications.append([token, lexeme_type])
                     matched = True
                     break
 
-            # If token is not matched, classify as TROOF or IDENTIFIER or UNCLASSIFIED
+            # If no match, classify as TROOF, IDENTIFIER, or UNCLASSIFIED
             if not matched:
                 if re.fullmatch(dict_matching["TROOF"], token):
                     tokens_with_classifications.append([token, "TROOF"])
@@ -170,20 +170,29 @@ def classifier(lines):
                 else:
                     tokens_with_classifications.append([token, "UNCLASSIFIED"])
 
+            index += 1
+
         classified_lines[line_num] = tokens_with_classifications
 
     return classified_lines
 
-def main():
-    """
-    Main function to execute the lexical analyzer.
-    """
+
+"""
+-----------------------------------------------------------------------------------------
+Main function to execute the lexical analyzer.
+-----------------------------------------------------------------------------------------
+"""
+def lex_main():
     text = read()
     classified_tokens = classifier(text)
-    print(classified_tokens)
+    
     # Print the classified tokens dictionary
-    for line_num, classifications in classified_tokens.items():
-        print(f"Line {line_num}: {classifications}")
+    for line_num, classifications in sorted(classified_tokens.items()):
+        formatted_classifications = ', '.join(
+            [f"[{repr(token)}, {repr(classification)}]" for token, classification in classifications]
+        )
+        print(f"Line {line_num}: {formatted_classifications}")
+        
+        return classified_tokens
 
-if __name__ == "__main__":
-    main()
+lex_main()
