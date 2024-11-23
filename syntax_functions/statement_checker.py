@@ -64,5 +64,6 @@ def statement_checker(code_block, classified_tokens, result):
             continue
         # print(code_block)
         #key - lines; value - tokens
-        visible_statement_checker(key,value, result)
+        if visible_statement_checker(key,value, result) == True:
+            print("Valid print statement")
     
