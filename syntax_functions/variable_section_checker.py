@@ -7,6 +7,7 @@ Return value: True - valid variable section
                 False - invalid variable section
 """
 def variable_section_checker(code_block, classified_tokens, result):
+    print("\nVariable section checker")
     index_of_WAZZUP = None
     index_of_BUHBYE = None
 
@@ -23,6 +24,7 @@ def variable_section_checker(code_block, classified_tokens, result):
     # Validate the existence and order of WAZZUP and BUHBYE
     if index_of_WAZZUP is None or index_of_BUHBYE is None or index_of_WAZZUP >= index_of_BUHBYE:
         result.append(("Variable section check.", "ERROR: Missing or improperly ordered WAZZUP and BUHBYE."))
+        print("Variable section check.", "ERROR: Missing or improperly ordered WAZZUP and BUHBYE.")
         return False
 
     # Extract the variable section (lines between WAZZUP and BUHBYE)
@@ -31,9 +33,11 @@ def variable_section_checker(code_block, classified_tokens, result):
         for k in sorted(classified_tokens.keys())
         if index_of_WAZZUP < k < index_of_BUHBYE
     }
+    print("variable section: \n", variable_section)
 
     # Validate the variable declarations in the extracted section
     if variable_declaration_checker(variable_section, classified_tokens, result):
+        print("Variable section is valid.")
         result.append(("", "Variable section is valid."))
         return True
     else:
