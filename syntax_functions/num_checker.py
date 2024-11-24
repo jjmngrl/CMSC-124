@@ -19,5 +19,6 @@ def num_checker(token):
         return True
     elif identifier_checker(token) == True:
         return True
+    #elif insert expression checker
     else: 
         return False
