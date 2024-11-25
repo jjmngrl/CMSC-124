@@ -1,0 +1,84 @@
+def bool_checker(token):
+    """
+    Function to validate boolean logic constructs.
+    Parameters:
+        token (list): List of token tuples (value, type).
+    Returns:
+        bool: True if the boolean construct is valid, False otherwise.
+    """
+
+    if not token or len(token) < 1:
+        return False
+
+    # BOTH OF construct
+    if token[0][0] == "BOTH OF" and token[0][1] == "KEYWORD":
+        if is_variable(token[1]) and token[2][0] == "AN":
+            if token[3][0] == "ALL OF" and parse_all_of(token[3:]):
+                return True
+            if token[3][0] == "ANY OF" and parse_any_of(token[3:]):
+                return True
+            if token[3][0] == "EITHER OF" and parse_either_of(token[3:]):
+                return True
+            if is_variable(token[3]) and token[4][0] == "AN" and is_variable(token[5]):
+                return True
+
+    # EITHER OF construct
+    if token[0][0] == "EITHER OF" and parse_either_of(token):
+        return True
+
+    # NOT construct
+    if token[0][0] == "NOT" and is_variable(token[1]):
+        return True
+
+    # ALL OF construct
+    if token[0][0] == "ALL OF" and parse_all_of(token):
+        return True
+
+    # ANY OF construct
+    if token[0][0] == "ANY OF" and parse_any_of(token):
+        return True
+
+    return False
+
+
+def parse_all_of(token):
+    """
+    Validates the ALL OF construct.
+    """
+    if token[0][0] == "ALL OF" and is_variable(token[1]):
+        i = 2
+        while i < len(token) and token[i][0] == "AN" and is_variable(token[i + 1]):
+            i += 2
+        if i < len(token) and token[i][0] == "MKAY":
+            return True
+    return False
+
+
+def parse_any_of(token):
+    """
+    Validates the ANY OF construct.
+    """
+    if token[0][0] == "ANY OF" and is_variable(token[1]):
+        i = 2
+        while i < len(token) and token[i][0] == "AN" and is_variable(token[i + 1]):
+            i += 2
+        if i < len(token) and token[i][0] == "MKAY":
+            return True
+    return False
+
+
+def parse_either_of(token):
+    """
+    Validates the EITHER OF construct.
+    """
+    if token[0][0] == "EITHER OF" and is_variable(token[1]):
+        if token[2][0] == "AN" and is_variable(token[3]):
+            return True
+    return False
+
+
+def is_variable(token):
+    """
+    Validates if a token is a variable.
+    """
+    return token[1] in ["IDENTIFIER", "NUMBR", "NUMBAR", "TROOF", "YARN"]

@@ -1,4 +1,10 @@
 from syntax_functions.validate_expression import validate_expression
+<<<<<<< Updated upstream
+=======
+from syntax_functions.literal_checker import literal_checker
+from syntax_functions.identifier_checker import identifier_checker
+from syntax_functions.bool_checker import bool_checker
+>>>>>>> Stashed changes
 
 def visible_statement_checker(code_block, classified_tokens, result):
     valid_literals = ["YARN", "NUMBR", "NUMBAR", "TROOF"]
@@ -20,6 +26,7 @@ def visible_statement_checker(code_block, classified_tokens, result):
             visible_part = tokens[1:]
             first_value, first_type = visible_part[0]
 
+<<<<<<< Updated upstream
             # Check for literals
             if first_type in valid_literals:
                 prompt = "Valid VISIBLE statement."
@@ -44,6 +51,21 @@ def visible_statement_checker(code_block, classified_tokens, result):
             else:
                 prompt = f"ERROR: Invalid VISIBLE statement starting with '{first_value}'."
                 flag = False
+=======
+            #Check if Literal
+            if literal_checker(visible_part[0]) == True:
+                print("valid literal")
+                flag = True
+            #check if identifier
+            elif identifier_checker(visible_part[0]) == True:
+                flag = True
+                print("Valid identifier")
+            #check if valid expression - insert valid expression checker
+            # check if bool
+            elif bool_checker(visible_part[0]) == True:
+                flag = True
+                print("Valid bool")
+>>>>>>> Stashed changes
 
         result.append((f"Line {line_num}: {tokens}", prompt))
 
