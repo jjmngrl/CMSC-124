@@ -1,3 +1,6 @@
+from syntax_functions.literal_checker import literal_checker
+from syntax_functions.identifier_checker import identifier_checker
+
 def bool_checker(token):
     """
     Function to validate boolean logic constructs.
@@ -81,4 +84,4 @@ def is_variable(token):
     """
     Validates if a token is a variable.
     """
-    return token[1] in ["IDENTIFIER", "NUMBR", "NUMBAR", "TROOF", "YARN"]
+    return identifier_checker(token) or literal_checker(token)

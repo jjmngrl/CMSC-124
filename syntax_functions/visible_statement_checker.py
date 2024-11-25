@@ -1,15 +1,7 @@
 from syntax_functions.validate_expression import validate_expression
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
 from syntax_functions.literal_checker import literal_checker
 from syntax_functions.identifier_checker import identifier_checker
 from syntax_functions.bool_checker import bool_checker
->>>>>>> Stashed changes
-=======
-from syntax_functions.literal_checker import literal_checker
-from syntax_functions.identifier_checker import identifier_checker
->>>>>>> dan
 
 def visible_statement_checker(line, tokens, result):
     print("\ninside visible statement checker")
@@ -30,35 +22,6 @@ def visible_statement_checker(line, tokens, result):
             visible_part = tokens[1:]
             first_value, first_type = visible_part[0]
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-            # Check for literals
-            if first_type in valid_literals:
-                prompt = "Valid VISIBLE statement."
-            # Check for identifiers
-            elif first_type == "IDENTIFIER":
-                if not any(
-                    first_value == token
-                    for line_tokens in classified_tokens.values()
-                    for token, token_type in line_tokens
-                    if token_type == "IDENTIFIER"
-                ):
-                    prompt = f"ERROR: Undefined identifier '{first_value}' used in 'VISIBLE'."
-                    flag = False
-                else:
-                    prompt = "Valid VISIBLE statement."
-            # Check for expressions or comparisons
-            elif first_value in valid_operations:
-                expression_result, is_valid = validate_expression(visible_part, classified_tokens)
-                prompt = expression_result
-                if not is_valid:
-                    flag = False
-            else:
-                prompt = f"ERROR: Invalid VISIBLE statement starting with '{first_value}'."
-                flag = False
-=======
-=======
->>>>>>> dan
             #Check if Literal
             if literal_checker(visible_part[0]) == True:
                 print("valid literal")
@@ -68,14 +31,10 @@ def visible_statement_checker(line, tokens, result):
                 flag = True
                 print("Valid identifier")
             #check if valid expression - insert valid expression checker
-<<<<<<< HEAD
-            # check if bool
+
             elif bool_checker(visible_part[0]) == True:
                 flag = True
-                print("Valid bool")
->>>>>>> Stashed changes
-=======
->>>>>>> dan
+                print("Valid expression")
 
 
             #Check if may concatentation - saka na gawin to if nacheck na yung grammar. And since wala pa naman sa test case
