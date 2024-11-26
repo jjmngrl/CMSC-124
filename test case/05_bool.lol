@@ -5,7 +5,7 @@ HAI
         I HAS A y
     BUHBYE
 
-    VISIBLE "x:" WIN ", y:" WIN
+    VISIBLE "x: " + FAIL + ", y: " + WIN
     x R WIN
     y R WIN
 
