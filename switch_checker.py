@@ -8,9 +8,18 @@ Supports multiple OMG blocks, validates literals after OMG, and ensures proper u
 """
 
 def switch_checker(classified_tokens):
+    """
+    Validate the LOLCODE switch-case structure (WTF?).
+    Uses a stack to track `OMG` cases to determine if `GTFO` is required.
+    Ensures:
+    - Intermediate `OMG` cases require `GTFO`.
+    - The last `OMG` case or one followed by `OMGWTF` does not require `GTFO`.
+    - `OMGWTF` is optional.
+    - `OIC` is required to close the block.
+    """
     current_state = "EXPECT_WTF"
-    # valid_switch_block = True
-    omg_case_found = False
+    omg_stack = []  # Stack to track `OMG` cases
+    valid_switch_block = True
 
     for line_num, tokens in classified_tokens.items():
         # Flatten tokens for easier parsing
@@ -25,15 +34,15 @@ def switch_checker(classified_tokens):
 
             elif current_state == "EXPECT_OMG":
                 if token == "OMG":
+                    omg_stack.append("OMG")  # Push to stack
                     current_state = "EXPECT_LITERAL"
-                    omg_case_found = True
                 elif token == "OMGWTF":
-                    if not omg_case_found:
-                        return f"Error: OMGWTF without any OMG cases at line {line_num}"
+                    if omg_stack and omg_stack[-1] == "OMG":
+                        omg_stack.pop()  # Final `OMG` does not require `GTFO`
                     current_state = "EXPECT_DEFAULT_STATEMENT"
                 elif token == "OIC":
-                    if not omg_case_found:
-                        return f"Error: No OMG case found before OIC at line {line_num}"
+                    if omg_stack:
+                        return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
                     current_state = "END"
                 else:
                     return f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}"
@@ -47,12 +56,19 @@ def switch_checker(classified_tokens):
 
             elif current_state == "EXPECT_STATEMENT":
                 if token == "GTFO":
+                    if omg_stack:
+                        omg_stack.pop()  # GTFO clears the current `OMG` case
                     current_state = "EXPECT_OMG_OR_END"
                 elif token == "OMG":
-                    current_state = "EXPECT_LITERAL"  # Allow transition to the next OMG case
+                    if omg_stack:
+                        return f"Error: Missing GTFO before next OMG at line {line_num}"
                 elif token == "OMGWTF":
-                    current_state = "EXPECT_DEFAULT_STATEMENT"  # Allow transition to OMGWTF
+                    if omg_stack and omg_stack[-1] == "OMG":
+                        omg_stack.pop()  # Clear stack for OMG before OMGWTF
+                    current_state = "EXPECT_DEFAULT_STATEMENT"
                 elif token == "OIC":
+                    if omg_stack:
+                        return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
                     current_state = "END"
                 else:
                     # Allow valid statements to continue
@@ -60,10 +76,15 @@ def switch_checker(classified_tokens):
 
             elif current_state == "EXPECT_OMG_OR_END":
                 if token == "OMG":
+                    omg_stack.append("OMG")  # Push to stack for the next case
                     current_state = "EXPECT_LITERAL"
                 elif token == "OMGWTF":
+                    if omg_stack and omg_stack[-1] == "OMG":
+                        omg_stack.pop()  # Final OMG does not require GTFO
                     current_state = "EXPECT_DEFAULT_STATEMENT"
                 elif token == "OIC":
+                    if omg_stack:
+                        return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
                     current_state = "END"
                 else:
                     return f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}"
@@ -71,7 +92,7 @@ def switch_checker(classified_tokens):
             elif current_state == "EXPECT_DEFAULT_STATEMENT":
                 if token == "OIC":
                     current_state = "END"
-                # Allow other valid statements
+                # Allow valid statements in the default case
                 else:
                     continue
 
@@ -79,11 +100,12 @@ def switch_checker(classified_tokens):
                 # No tokens should follow OIC
                 return f"Error: Unexpected token after OIC at line {line_num}"
 
-    # If the loop ends without reaching the END state
+    # After processing all lines, ensure the block is correctly closed
     if current_state != "END":
         return "Error: Incomplete switch-case block, missing OIC"
 
     return True
+
 
 
 
@@ -124,9 +146,39 @@ test_case = {
     }
 }
 
+invalid_test_case = {
+    1: {  # Missing OIC at the end
+        1: [("WTF?", "KEYWORD")],
+        2: [("OMG", "KEYWORD"), ("1", "NUMBR")],
+        3: [("VISIBLE", "KEYWORD"), ("\"Compute Age\"", "YARN")],
+        4: [("GTFO", "KEYWORD")],
+        5: [("OMG", "KEYWORD"), ("2", "NUMBR")],
+        6: [("VISIBLE", "KEYWORD"), ("\"Compute Tip\"", "YARN")],
+        7: [("GTFO", "KEYWORD")],
+        # Missing OIC
+    },
+     2: {  # Missing GTFO after OMG 1
+        1: [("WTF?", "KEYWORD")],
+        2: [("OMG", "KEYWORD"), ("1", "NUMBR")],
+        3: [("VISIBLE", "KEYWORD"), ("\"Compute Age\"", "YARN")],
+        # Missing GTFO here
+        4: [("OMG", "KEYWORD"), ("2", "NUMBR")],
+        5: [("VISIBLE", "KEYWORD"), ("\"Compute Tip\"", "YARN")],
+        6: [("GTFO", "KEYWORD")],
+        7: [("OMGWTF", "KEYWORD")],
+        8: [("VISIBLE", "KEYWORD"), ("\"Invalid Input!\"", "YARN")],
+        9: [("OIC", "KEYWORD")]
+    }
+}
+
+
 
 # Run the test cases and print results
 for case_id, case in test_case.items():
+    result = switch_checker(case)
+    print(f"Test Case {case_id}: {'Valid' if result == True else result}")
+
+for case_id, case in invalid_test_case.items():
     result = switch_checker(case)
     print(f"Test Case {case_id}: {'Valid' if result == True else result}")
 
