@@ -15,7 +15,7 @@ Reads a LOLCODE file and removes comments and empty lines.
 """
 
 def read():
-    file = r"test case/05_bool.lol"
+    file = r"test case/08_switch.lol"
     if file.endswith(".lol"):
         with open(file, 'r') as f:
             lines = f.readlines()
@@ -191,7 +191,7 @@ def lex_main():
         formatted_classifications = ', '.join(
             [f"[{repr(token)}, {repr(classification)}]" for token, classification in classifications]
         )
-    #     print(f"Line {line_num}: {formatted_classifications}") 
+        # print(f"Line {line_num}: {formatted_classifications}") 
         
     return classified_tokens
 
