@@ -149,5 +149,4 @@ def statement_checker(code_block, classified_tokens, result):
             print(f"Switch block: {switch_blocks} \n Switch {case_id}: {'Valid switch statement' if result == True else result}")
             print("\n")
     else:
-        result.append(("Switch section check.", "No switch section found."))
         print("Switch section check.", "No switch section found.")
