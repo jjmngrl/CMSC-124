@@ -1,7 +1,7 @@
-from syntax_functions.validate_expression import validate_expression
-from syntax_functions.literal_checker import literal_checker
-from syntax_functions.identifier_checker import identifier_checker
-from syntax_functions.expression_checker import expression_checker
+from validate_expression import validate_expression
+from literal_checker import literal_checker
+from identifier_checker import identifier_checker
+from expression_checker import expression_checker
 
 def visible_statement_checker(line, tokens, result):
     # Start by adding a log entry to show we're inside the visible statement checker
