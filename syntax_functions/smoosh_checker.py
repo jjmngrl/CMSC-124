@@ -1,6 +1,6 @@
-from syntax_functions.literal_checker import literal_checker
-from syntax_functions.str_checker import str_checker
-from syntax_functions.identifier_checker import identifier_checker
+from literal_checker import literal_checker
+from str_checker import str_checker
+from identifier_checker import identifier_checker
 
 """ 
 Function to check if smoosh (concatenation) is valid
