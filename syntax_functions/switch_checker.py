@@ -4,15 +4,7 @@ Supports multiple OMG blocks, validates literals after OMG, and ensures proper u
 """
 
 def switch_checker(classified_tokens):
-    """
-    Validate the LOLCODE switch-case structure (WTF?).
-    Uses a stack to track `OMG` cases to determine if `GTFO` is required.
-    Ensures:
-    - Intermediate `OMG` cases require `GTFO`.
-    - The last `OMG` case or one followed by `OMGWTF` does not require `GTFO`.
-    - `OMGWTF` is optional.
-    - `OIC` is required to close the block.
-    """
+
     current_state = "EXPECT_WTF"
     omg_stack = []  # Stack to track `OMG` cases
     valid_switch_block = True
