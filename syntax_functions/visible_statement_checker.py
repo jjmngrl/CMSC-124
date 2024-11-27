@@ -1,7 +1,6 @@
 from syntax_functions.validate_expression import validate_expression
 from syntax_functions.literal_checker import literal_checker
 from syntax_functions.identifier_checker import identifier_checker
-from syntax_functions.bool_checker import bool_checker
 
 def visible_statement_checker(line, tokens, result):
     print("\ninside visible statement checker")
@@ -31,10 +30,6 @@ def visible_statement_checker(line, tokens, result):
                 flag = True
                 print("Valid identifier")
             #check if valid expression - insert valid expression checker
-
-            elif bool_checker(visible_part[0]) == True:
-                flag = True
-                print("Valid expression")
 
 
             #Check if may concatentation - saka na gawin to if nacheck na yung grammar. And since wala pa naman sa test case
