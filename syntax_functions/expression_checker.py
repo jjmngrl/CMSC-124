@@ -1,3 +1,5 @@
+from data_type_checker import data_type_checker
+
 """ 
 Function to check if a token is a valid expression
 Parameter: Token 
@@ -16,6 +18,8 @@ def expression_checker(tokens, nested_bool_flag):
     concatenation_operator = ['SMOOSH']
     comparison_operators = ['BOTH SAEM', 'DIFFRINT']
     relational_operators = ['BIGGR OF', 'SMALLR OF']
+    explicit_operator = ['MAEK']
+    recast_operator = ['IS NOW A']
     expression_operators = (
         arithmetic_operators + 
         boolean_operators + 
@@ -33,6 +37,8 @@ def expression_checker(tokens, nested_bool_flag):
         'concatenation': concatenation_operation,
         'comparison': comparison_operation,
         'relational': relational_operation,
+        'explicit': explicit_typecast_checker,
+        'recast': recast_checker
     }
     
     # Check if the token is in any of the operator lists
@@ -52,6 +58,10 @@ def expression_checker(tokens, nested_bool_flag):
         else:
             # Otherwise, call the 'comparison' function
             return operator_functions['comparison'](comparison_operators, tokens, expression_operators)
+    elif tokens[0][0] in explicit_operator and tokens[0][1] == "KEYWORD":
+        return operator_functions['explicit'](tokens)
+    elif tokens[1][0] in recast_operator and tokens[1][1] == "KEYWORD":
+        return operator_functions['recast'](tokens)
     else:
         print(f"Invalid token: {tokens[0][0]}")  # If the token does not match any known operator
         return False  # Invalid expression
@@ -582,23 +592,94 @@ def relational_operation(relational_operators, comparison_operators, tokens, exp
 
     return local_flag
 
-tokens = [
-    ['ANY OF', 'KEYWORD'],
-    ['BOTH OF', 'KEYWORD'],
-    ['X', 'IDENTIFIER'],
-    ['AN', 'KEYWORD'],
-    ['EITHER OF', 'KEYWORD'],
-    ['NOT', 'KEYWORD'],
-    ['X', 'IDENTIFIER'],
-    ['AN', 'KEYWORD'],
-    ['Y', 'IDENTIFIER'],
-    ['AN', 'KEYWORD'],
-    ['Y', 'IDENTIFIER'],
-    ['AN', 'KEYWORD'],
-    ['NOT', 'KEYWORD'],
-    ['Y', 'IDENTIFIER'],
-    ['MKAY', 'KEYWORD']
-]
+def explicit_typecast_checker(tokens):
+    """
+    Validates explicit typecasting in LOLCODE based on the specified grammar:
+    - MAEK varident A <data_type>
+    - MAEK varident <data_type>
+    
+    Arguments:
+        tokens: A list of tokens, where each token is a tuple (value, type).
+                Example: [("MAEK", "KEYWORD"), ("x", "IDENTIFIER"), ("A", "KEYWORD"), ("NUMBR", "DATATYPE")]
+    
+    Returns:
+        True if the explicit typecasting is valid, or an error message if invalid.
+    """
+    print("\nInside explicit_typecast_checker")
+    print("Tokens to check:", tokens)
+    
+    if len(tokens) < 3:
+        return "Error: Incomplete typecasting statement"
 
+    if tokens[0][0] != "MAEK" or tokens[0][1] != "KEYWORD":
+        return "Error: Expected 'MAEK' at the start of typecasting statement"
+
+    # Check the variable identifier
+    if tokens[1][1] != "IDENTIFIER":
+        return f"Error: Expected variable identifier after 'MAEK', found {tokens[1][0]}"
+
+    # Case 1: MAEK varident A <data_type>
+    if len(tokens) == 4:
+        if tokens[2][0] != "A" or tokens[2][1] != "KEYWORD":
+            return f"Error: Expected 'A' keyword for typecasting, found {tokens[2][0]}"
+        if not data_type_checker(tokens[3]):
+            return f"Error: Expected data type after 'A', found {tokens[3][0]}"
+        print("Valid explicit typecasting (MAEK varident A <data_type>)")
+        return True
+
+    # Case 2: MAEK varident <data_type>
+    elif len(tokens) == 3:
+        if not data_type_checker(tokens[2]):
+            return f"Error: Expected data type after variable identifier, found {tokens[2][0]}"
+        print("Valid explicit typecasting (MAEK varident <data_type>)")
+        return True
+
+    return "Error: Invalid typecasting statement"
+
+def recast_checker(tokens):
+    """
+    Validates recast statements in LOLCODE based on the specified grammar:
+    - varident IS NOW A <data_type>
+    - varident R <explicit_typecast>
+    
+    Arguments:
+        tokens: A list of tokens, where each token is a tuple (value, type).
+                Example: [("x", "IDENTIFIER"), ("IS NOW A", "KEYWORD"), ("NUMBR", "DATATYPE")]
+
+    Returns:
+        True if the recast statement is valid, or an error message if invalid.
+    """
+    print("\nInside recast_checker")
+    print("Tokens to check:", tokens)
+
+    if len(tokens) < 3:
+        return "Error: Incomplete recast statement"
+
+    # Check the variable identifier
+    if tokens[0][1] != "IDENTIFIER":
+        return f"Error: Expected variable identifier at the start, found {tokens[0][0]}"
+
+    # Case 1: varident IS NOW A <data_type>
+    if len(tokens) >= 3 and tokens[1][0] == "IS NOW A" and tokens[1][1] == "KEYWORD":
+        if data_type_checker(tokens[2]):
+            print("Valid recast (varident IS NOW A <data_type>)")
+            return True
+        else:
+            return f"Error: Expected data type after 'IS NOW A', found {tokens[2][0]}"
+
+    # Case 2: varident R <explicit_typecast>
+    elif len(tokens) >= 2 and tokens[1][0] == "R" and tokens[1][1] == "KEYWORD":
+        explicit_typecast_tokens = tokens[2:]  # Extract the tokens after 'R'
+        print(explicit_typecast_tokens)
+        result = explicit_typecast_checker(explicit_typecast_tokens)
+        if result == True:
+            print("Valid recast (varident R <explicit_typecast>)")
+            return True
+        else:
+            return result
+
+    return "Error: Invalid recast statement"
+
+tokens = [("x", "IDENTIFIER"), ("IS NOW A", "KEYWORD"), ("NMBR", "KEYWORD")]
 
 expression_checker(tokens, False)
