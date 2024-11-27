@@ -85,7 +85,7 @@ def function_checker(token):
     
 
 
-new_code_tokens = {
+code_tokens = {
     1: [["HAI", "KEYWORD"]],
     2: [["HOW", "KEYWORD"], ["IZ", "KEYWORD"], ["I", "KEYWORD"], ["addNum", "IDENTIFIER"], ["YR", "KEYWORD"], ["x", "IDENTIFIER"], ["AN", "KEYWORD"], ["y", "IDENTIFIER"]],
     3: [["FOUND", "KEYWORD"], ["YR", "KEYWORD"], ["SUM", "KEYWORD"], ["OF", "KEYWORD"], ["x", "IDENTIFIER"], ["an", "KEYWORD"], ["y", "IDENTIFIER"]],
