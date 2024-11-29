@@ -8,10 +8,6 @@ Return value: True - valid expression
 """
 
 def expression_checker(tokens, nested_bool_flag):
-    print()
-    print("You are now in expression checker")
-    print(tokens)
-    print()
     arithmetic_operators = ['SUM OF', 'DIFF OF', 'PRODUKT OF', 'QUOSHUNT OF', 'MOD OF', 'BIGGR OF', 'SMALLR OF']
     boolean_operators = ['BOTH OF', 'EITHER OF', 'WON OF', 'NOT']
     nested_boolean_operators = ['ALL OF', 'ANY OF']
@@ -65,14 +61,10 @@ def expression_checker(tokens, nested_bool_flag):
     elif len(tokens)>1 and tokens[1][0] in recast_operator and tokens[1][1] == "KEYWORD":
         return operator_functions['recast'](tokens)
     else:
-        print(f"Invalid token: {tokens[0][0]}")  # If the token does not match any known operator
+        print(f"Not an expression")  # If the token does not match any known operator
         return False  # Invalid expression
 
 def arithmetic_operation(operators, tokens):
-    print()
-    print("You're now in arithmetic operation function")
-    print(f"Tokens: {tokens}")
-    print()
     stack = []
     local_flag = True
 
@@ -91,7 +83,7 @@ def arithmetic_operation(operators, tokens):
             stack.append((token, "operand"))
             # print(f"Added to stack as operand: {stack}")
         else:
-            print(f"ERROR: Invalid token '{token}' in arithmetic.")
+            print(f"ERROR: Invalid arithmetic expression.")
             local_flag = False
         
         # Check for the pattern (operation operand AN operand)
@@ -129,23 +121,18 @@ def arithmetic_operation(operators, tokens):
             # print(f"Final reduction: {reduced_expression}")
 
     # Final state of the stack
-    print(f"Final stack: {stack}")
+    # print(f"Final stack: {stack}")
 
     # Check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
         print("Valid arithmetic expression.")
     else:
-        print("ERROR: Malformed arithmetic expression.")
+        print("ERROR: Invalid arithmetic expression.")
         local_flag = False
 
     return local_flag
 
 def boolean_operation(operators, tokens, expression_operators, nested_bool_flag, an_count_container):
-    print()
-    print("You're now in boolean operation function")
-    print(f"Tokens: {tokens}")
-    print()
-
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
@@ -157,34 +144,28 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
         token_info = tokens[index]
         token, token_type = token_info  # Unpack the token and its type
 
-        print(f"Processing token at index {index}: {token_info}")
+        # print(f"Processing token at index {index}: {token_info}")
 
         # Check if the token is an operator (from either operators or expression_operators)
         if token in operators or token in expression_operators and token_type == "KEYWORD":
-            print(f"Token '{token}' is an operator.")
+            # print(f"Token '{token}' is an operator.")
             stack.append((token, "operation", index))  # Add token with index
             operation_count += 1  # Increment operation count
         elif token == "AN" and token_type == "KEYWORD":
-            print(f"Token '{token}' is an 'AN' keyword.")
+            # print(f"Token '{token}' is an 'AN' keyword.")
             stack.append((token, "keyword", index))  # Add keyword with index
             an_count += 1  # Increment AN count
             an_count_container[0] = an_count  # Update the count in the container
         elif token_type in ["NUMBR", "NUMBAR", "TROOF", "YARN", "IDENTIFIER"]:
-            print(f"Token '{token}' is an operand.")
+            # print(f"Token '{token}' is an operand.")
             stack.append((token, "operand", index))
         else:
             print(f"ERROR: Invalid token '{token}' in boolean operation.")
             local_flag = False
 
-        print()
-        print("stack: ",stack)
-        print()
         # Check if there's a "NOT" at the top of the stack before an operand
         if len(stack)>1 and stack[-2][0] == "NOT" and stack[-2][1] == "operation" and (stack[-1][1] == "operand"):
             # Perform the reduction of "NOT operand"
-            print()
-            print("NOT found")
-            print()
             operand = token
             reduced_expression = f"NOT {operand}"
             reduced_index = (stack[-2][2], index)  # Use the indices of the "NOT" and the operand
@@ -192,12 +173,12 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
             stack.append((reduced_expression, "operand", reduced_index))  # Add the reduced expression
 
             # Print the reduction of "NOT"
-            print(f"Reduced 'NOT' expression: {reduced_expression}")
+            # print(f"Reduced 'NOT' expression: {reduced_expression}")
 
             while True:
                 if len(stack) > 1 and stack[-2][0] == "NOT" and stack[-2][1] == "operation" and stack[-1][1] == "operand":
                         # Perform the reduction of "NOT operand"
-                        print("\nNOT found after reduction\n")
+                        # print("\nNOT found after reduction\n")
                         operand = stack[-1][0]
                         reduced_expression = f"NOT {operand}"
                         reduced_index = (stack[-2][2], stack[-1][2][1])  # Use the indices of the "NOT" and the operand
@@ -205,7 +186,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                         stack.append((reduced_expression, "operand", reduced_index))  # Add the reduced expression
 
                         # Print the reduction of "NOT"
-                        print(f"Reduced 'NOT' expression: {reduced_expression}")
+                        # print(f"Reduced 'NOT' expression: {reduced_expression}")
 
                         # Skip the remaining processing for this token (as it's been reduced)
                         index = reduced_index[1] + 1  # Skip to the next token after reduction
@@ -222,7 +203,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                 stack[-2][1] == "keyword" and
                 stack[-1][1] == "operand"):
 
-                print("Pattern found: operation operand AN operand.")
+                # print("Pattern found: operation operand AN operand.")
                 # Perform the reduction (operation operand AN operand)
                 operation = stack[-4][0]
                 operand1 = stack[-3][0]
@@ -237,14 +218,14 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
 
                 # Now, let's work with the reduced tokens for further validation
                 reduced_tokens = tokens[reduced_index[0]:reduced_index[1] + 1]  # Correctly slice the tokens list
-                print(f"After reduction, stack: {stack}")
-                print(f"Reduced tokens for validation: {reduced_tokens}")
-                print(f"Reduced index: {reduced_index}")
+                # print(f"After reduction, stack: {stack}")
+                # print(f"Reduced tokens for validation: {reduced_tokens}")
+                # print(f"Reduced index: {reduced_index}")
 
                 while True:
                     if len(stack) > 1 and stack[-2][0] == "NOT" and stack[-2][1] == "operation" and stack[-1][1] == "operand":
                             # Perform the reduction of "NOT operand"
-                            print("\nNOT found after reduction\n")
+                            # print("\nNOT found after reduction\n")
                             operand = stack[-1][0]
                             reduced_expression = f"NOT {operand}"
                             reduced_index = (stack[-2][2], stack[-1][2][1])  # Use the indices of the "NOT" and the operand
@@ -252,7 +233,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                             stack.append((reduced_expression, "operand", reduced_index))  # Add the reduced expression
 
                             # Print the reduction of "NOT"
-                            print(f"Reduced 'NOT' expression: {reduced_expression}")
+                            # print(f"Reduced 'NOT' expression: {reduced_expression}")
 
                             # Skip the remaining processing for this token (as it's been reduced)
                             index = reduced_index[1] + 1  # Skip to the next token after reduction
@@ -260,44 +241,33 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                         break 
                     # Skip validation if the first token is part of the reduced tokens
                     if tokens[0] in reduced_tokens:
-                        print("Skipping validation since the first token is part of the reduced tokens.")
+                        # print("Skipping validation since the first token is part of the reduced tokens.")
                         # Move the index to the token after the reduced portion
                         index = reduced_index[1] + 1
                         continue
-
-                # Skip expression checking (previously expression_checker call removed)
-                print("Skipping validation after reduction (expression_checker removed).")
-                
-                print("Successfully reduced, checking for further reductions.")
 
                 # **Backward Check**: We now perform a backward check to see if further reductions are possible.
                 if len(stack) >= 4 and (stack[-4][1] == "operation" and
                                          stack[-3][1] == "operand" and
                                          stack[-2][1] == "keyword" and
                                          stack[-1][1] == "operand"):
-                    print("Backward check found another valid pattern: operation operand AN operand.")
+                    # print("Backward check found another valid pattern: operation operand AN operand.")
                     # Perform the reduction (operation operand AN operand)
                     operation = stack[-4][0]
                     operand1 = stack[-3][0]
                     operand2 = stack[-1][0]
                     reduced_expression = f"{operation} {operand1} AN {operand2}"
-                    print(stack)
                     # Capture the indices of the reduced tokens
                     reduced_index = (stack[-4][2], stack[-1][2][1])  # Ensure this is a tuple with start and end indices
-                    print("reduced_index: ", reduced_index)
+                    # print("reduced_index: ", reduced_index)
                     # Replace the reduced portion of the stack with the new expression
                     stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
                     # Now, let's work with the reduced tokens for further validation
                     reduced_tokens = tokens[reduced_index[0]:reduced_index[1] + 1]  # Correctly slice the tokens list
-                    print(f"After reduction, stack: {stack}")
-                    print(f"Reduced tokens for validation: {reduced_tokens}")
-                    print(f"Reduced index: {reduced_index}")
-
-                    # Skip expression checking (previously expression_checker call removed)
-                    print("Skipping validation after backward reduction (expression_checker removed).")
-                    
-                    print("Successfully reduced, checking for further reductions.")
+                    # print(f"After reduction, stack: {stack}")
+                    # print(f"Reduced tokens for validation: {reduced_tokens}")
+                    # print(f"Reduced index: {reduced_index}")
 
                 # After the backward check, **update the index** to skip the reduced portion
                 index = reduced_index[1] + 1
@@ -308,7 +278,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
             if (stack[-3][1] == "operand" and
                 stack[-2][1] == "keyword" and
                 stack[-1][1] == "operand"):
-                print("Nested pattern found: operand AN operand.")
+                # print("Nested pattern found: operand AN operand.")
                 # Reduce the expression to a single operand
                 operand1 = stack[-3][0]
                 operand2 = stack[-1][0]
@@ -319,7 +289,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                 stack = stack[:-3] + [(reduced_expression, "operand", reduced_index)]
 
                 # No need to validate since it's just the reduction of two operands
-                print(f"After reduction, stack: {stack}")
+                # print(f"After reduction, stack: {stack}")
                 index += 1  # Move index to next token after reduction
                 continue
 
@@ -332,7 +302,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
     if len(stack) > 1:
         # Check for any extra tokens that shouldn't be in the stack (invalid state)
         if stack[-1][1] != "operand":
-            print(f"Extra token detected: {stack[-1]}. Returning False immediately.")
+            # print(f"Extra token detected: {stack[-1]}. Returning False immediately.")
             return False  # If the last token in the stack is not an operand, return False immediately
 
         # If we have more than one element in the stack and everything seems valid,
@@ -346,12 +316,12 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
 
     # Return the final reduced expression and remaining tokens
     reduced_expression = stack[0][0] if stack else ""  # If stack is not empty, return the reduced expression
-    print(f"Final stack: {stack}")
+    # print(f"Final stack: {stack}")
 
     if remaining_tokens:
         remaining_tokens = remaining_tokens[0]
 
-    print(f"BOOLEAN | Remaining tokens after reductions: {remaining_tokens}")
+    # print(f"BOOLEAN | Remaining tokens after reductions: {remaining_tokens}")
     # If nested_bool_flag is True, return the reduced expression along with the remaining tokens
     if nested_bool_flag:
         return reduced_expression, remaining_tokens, True
@@ -363,23 +333,18 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
     if local_flag == True:
         print("Valid Boolean Expression")
     else:
-        print("Invalid Boolean Expression")
+        print("ERROR: Invalid Boolean Expression")
     return local_flag
 
 def nested_boolean_operation(operators, tokens, expression_operators):
-    print()
-    print("You're now in nested boolean operation function")
-    print(f"Tokens: {tokens}")
-    print()
-
     an_count_container = [0]  # Initialize an_count as a list to simulate pass-by-reference
 
     # Check if the first token is a valid operator and the last token is 'MKAY'
     if tokens[0][0] not in operators:
-        print("ERROR: Nested boolean operation must start with a valid operator.")
+        # print("ERROR: Nested boolean operation must start with a valid operator.")
         return False
     if tokens[-1] != ['MKAY', 'KEYWORD']:
-        print("ERROR: Nested boolean operation must end with 'MKAY'.")
+        # print("ERROR: Nested boolean operation must end with 'MKAY'.")
         return False
 
     # Slice the tokens to exclude the first (operator) and last ('MKAY') token
@@ -397,9 +362,9 @@ def nested_boolean_operation(operators, tokens, expression_operators):
             print("ERROR: Invalid boolean expression in the current iteration.")
             return False
 
-        print(f"Updated an_count: {an_count_container[0]}")
-        print(f"Reduced expression: {reduced_expression}")
-        print(f"Remaining tokens after reduction: {remaining_tokens}")
+        # print(f"Updated an_count: {an_count_container[0]}")
+        # print(f"Reduced expression: {reduced_expression}")
+        # print(f"Remaining tokens after reduction: {remaining_tokens}")
 
         # If no more tokens remain, it means we've reduced everything successfully
         if not remaining_tokens:
@@ -408,7 +373,7 @@ def nested_boolean_operation(operators, tokens, expression_operators):
 
         # If there are remaining tokens, and the first one is 'AN', continue processing
         if len(remaining_tokens) > 1 and remaining_tokens[0] == ['AN', 'KEYWORD']:
-            print(f"Passing remaining tokens {remaining_tokens[1:]} to boolean_operation for further processing.")
+            # print(f"Passing remaining tokens {remaining_tokens[1:]} to boolean_operation for further processing.")
             # Recurse with the remaining tokens
             remaining_tokens = remaining_tokens[1:]  # Skip the first 'AN' token
         else:
@@ -418,10 +383,6 @@ def nested_boolean_operation(operators, tokens, expression_operators):
 
 
 def concatenation_operation(operators, tokens, expression_operators):
-    print()
-    print("You're now in concatenation operation function")
-    print(f"Tokens: {tokens}")
-    print()
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
@@ -465,15 +426,15 @@ def concatenation_operation(operators, tokens, expression_operators):
 
                 # Skip validation if the first token is part of the reduced tokens
                 if tokens[0] in reduced_tokens:
-                    print("Skipping validation since the first token is part of the reduced tokens.")
+                    # print("Skipping validation since the first token is part of the reduced tokens.")
                     # Move the index to the token after the reduced portion
                     index = reduced_index[1] + 1
                     continue
 
                 # Print for debugging
-                print(f"After reduction, stack: {stack}")
-                print(f"Reduced tokens for validation: {reduced_tokens}")
-                print(f"Reduced index: {reduced_index}")
+                # print(f"After reduction, stack: {stack}")
+                # print(f"Reduced tokens for validation: {reduced_tokens}")
+                # print(f"Reduced index: {reduced_index}")
 
                 # Validate the reduced expression by passing the reduced tokens to expression_checker
                 if expression_checker(reduced_tokens, False) == False:
@@ -504,22 +465,18 @@ def concatenation_operation(operators, tokens, expression_operators):
             stack = stack[:-4] + [(reduced_expression, "operand")]
 
     # Final state of the stack
-    print(f"Final stack: {stack}")
+    # print(f"Final stack: {stack}")
     
     # Check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
         print("Valid concatenation expression.")
     else:
-        print("ERROR: Malformed concatenation expression.")
+        print("ERROR: Invalid concatenation expression.")
         local_flag = False
 
     return local_flag
 
 def comparison_operation(operators, tokens, expression_operators):
-    print()
-    print("You're now in comparison operation function")
-    print(f"Tokens: {tokens}")
-    print()
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
@@ -563,15 +520,15 @@ def comparison_operation(operators, tokens, expression_operators):
 
                 # Skip validation if the first token is part of the reduced tokens
                 if tokens[0] in reduced_tokens:
-                    print("Skipping validation since the first token is part of the reduced tokens.")
+                    # print("Skipping validation since the first token is part of the reduced tokens.")
                     # Move the index to the token after the reduced portion
                     index = reduced_index[1] + 1
                     continue
 
                 # Print for debugging
-                print(f"After reduction, stack: {stack}")
-                print(f"Reduced tokens for validation: {reduced_tokens}")
-                print(f"Reduced index: {reduced_index}")
+                # print(f"After reduction, stack: {stack}")
+                # print(f"Reduced tokens for validation: {reduced_tokens}")
+                # print(f"Reduced index: {reduced_index}")
 
                 # Validate the reduced expression by passing the reduced tokens to expression_checker
                 if expression_checker(reduced_tokens, False) == False:
@@ -602,23 +559,18 @@ def comparison_operation(operators, tokens, expression_operators):
             stack = stack[:-4] + [(reduced_expression, "operand")]
 
     # Final state of the stack
-    print(f"Final stack: {stack}")
+    # print(f"Final stack: {stack}")
     
     # Check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
         print("Valid comparison expression.")
     else:
-        print("ERROR: Malformed comparison expression.")
+        print("ERROR: Invalid comparison expression.")
         local_flag = False
 
     return local_flag
 
 def relational_operation(relational_operators, comparison_operators, tokens, expression_operators):
-    print()
-    print("You're now in relational operation function")
-    print(f"Tokens: {tokens}")
-    print()
-    
     # Split tokens into two parts: comparison and relational
     first_part = []
     second_part = []
@@ -638,11 +590,11 @@ def relational_operation(relational_operators, comparison_operators, tokens, exp
             second_part.append(token)
 
     # Debugging output for token splitting
-    print(f"First Part (Comparison): {first_part}")
-    print(f"Second Part (Relational): {second_part}")
+    # print(f"First Part (Comparison): {first_part}")
+    # print(f"Second Part (Relational): {second_part}")
 
     # Process the second part
-    print("\nProcessing the second part (Relational Operations):")
+    # print("\nProcessing the second part (Relational Operations):")
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
@@ -682,9 +634,9 @@ def relational_operation(relational_operators, comparison_operators, tokens, exp
                 stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
                 # Print for debugging
-                print(f"After reduction, stack: {stack}")
-                print(f"Reduced tokens for validation: {second_part[reduced_index[0]:reduced_index[1] + 1]}")
-                print(f"Reduced index: {reduced_index}")
+                # print(f"After reduction, stack: {stack}")
+                # print(f"Reduced tokens for validation: {second_part[reduced_index[0]:reduced_index[1] + 1]}")
+                # print(f"Reduced index: {reduced_index}")
 
                 # Move the index to the token after the reduced portion
                 index = reduced_index[1] + 1
@@ -709,21 +661,21 @@ def relational_operation(relational_operators, comparison_operators, tokens, exp
             stack = stack[:-4] + [(reduced_expression, "operand")]
 
     # Final state of the stack
-    print(f"Final stack: {stack}")
+    # print(f"Final stack: {stack}")
     
     # Check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
         print("Valid relational expression.")
         
         # Validate the original tokens as a comparison expression
-        print("\nChecking if tokens are a valid comparison...")
+        # print("\nChecking if tokens are a valid comparison...")
         if not comparison_operation(comparison_operators, tokens, expression_operators):  # Assuming `expression_checker` is the comparison validator
             print("ERROR: Tokens do not form a valid comparison.")
             local_flag = False
         else:
             print("Tokens are a valid comparison expression.")
     else:
-        print("ERROR: Malformed relational expression.")
+        print("ERROR: Invalid relational expression.")
         local_flag = False
 
     return local_flag
@@ -741,8 +693,8 @@ def explicit_typecast_checker(tokens):
     Returns:
         True if the explicit typecasting is valid, or an error message if invalid.
     """
-    print("\nInside explicit_typecast_checker")
-    print("Tokens to check:", tokens)
+    # print("\nInside explicit_typecast_checker")
+    # print("Tokens to check:", tokens)
     
     if len(tokens) < 3:
         return "Error: Incomplete typecasting statement"
@@ -785,8 +737,8 @@ def recast_checker(tokens):
     Returns:
         True if the recast statement is valid, or an error message if invalid.
     """
-    print("\nInside recast_checker")
-    print("Tokens to check:", tokens)
+    # print("\nInside recast_checker")
+    # print("Tokens to check:", tokens)
 
     if len(tokens) < 3:
         return "Error: Incomplete recast statement"
@@ -806,7 +758,7 @@ def recast_checker(tokens):
     # Case 2: varident R <explicit_typecast>
     elif len(tokens) >= 2 and tokens[1][0] == "R" and tokens[1][1] == "KEYWORD":
         explicit_typecast_tokens = tokens[2:]  # Extract the tokens after 'R'
-        print(explicit_typecast_tokens)
+        # print(explicit_typecast_tokens)
         result = explicit_typecast_checker(explicit_typecast_tokens)
         if result == True:
             print("Valid recast (varident R <explicit_typecast>)")
@@ -816,7 +768,3 @@ def recast_checker(tokens):
 
     return "Error: Invalid recast statement"
 
-tokens = [
-    ["BOTH OF", "KEYWORD"], ["x", "IDENTIFIER"], ["AN", "KEYWORD"], ["EITHER OF", "KEYWORD"], ["NOT", "KEYWORD"], ["x", "IDENTIFIER"], ["AN", "KEYWORD"], ["y", "IDENTIFIER"]
-]
-expression_checker(tokens, False)
