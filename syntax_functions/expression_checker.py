@@ -1,3 +1,5 @@
+from data_type_checker import data_type_checker
+
 """ 
 Function to check if a token is a valid expression
 Parameter: Token 
