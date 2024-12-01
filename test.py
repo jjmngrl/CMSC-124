@@ -5,76 +5,77 @@ in_wazzup = False  # Flag to track if inside WAZZUP block
 
 # List of LOLCODE reserved keywords (these should not be treated as variables)
 dict_matching = {
-        # Keywords
-        "KEYWORD": [
-            r"I HAS A",
-            r"ITZ",
-            r"IF U SAY SO",
-            r"IM OUTTA YR",
-            r"QUOSHUNT OF",
-            r"PRODUKT OF",
-            r"BOTH SAEM",
-            r"EITHER OF",
-            r"SMALLR OF",
-            r"BIGGR OF",
-            r"DIFFRINT",
-            r"FOUND YR",
-            r"HOW IZ I",
-            r"IM IN YR",
-            r"IS NOW A",
-            r"BOTH OF",
-            r"DIFF OF",
-            r"KTHXBYE",
-            r"VISIBLE",
-            r"ALL OF",
-            r"ANY OF",
-            r"GIMMEH",
-            r"MOD OF",
-            r"NERFIN",
-            r"NO WAI",
-            r"NUMBAR",
-            "O RLY?",
-            r"OMGWTF",
-            r"SMOOSH",
-            r"SUM OF",
-            r"WON OF",
-            r"YA RLY",
-            r"MEBBE",
-            r"NUMBR",
-            r"TROOF",
-            r"UPPIN",
-            r"WAZZUP",
-            r"BUHBYE",
-            r"GTFO",
-            r"MAEK",
-            r"MKAY",
-            r"NOOB",
-            r"WILE",
-            "WTF?",
-            r"YARN",
-            r"HAI",
-            r"NOT",
-            r"OIC",
-            r"OMG",
-            r"TIL",
-            r"AN",
-            r"YR",
-            r"R"
-        ],
-        # Literals
-        "NUMBR": r"^-?\d+$",
-        "NUMBAR": r"^-?\d+\.\d+$",
-        "YARN": r"^\".*\"$",  # Matches complete YARN (strings enclosed in quotes)
-        "TROOF": r"\b(WIN|FAIL)\b",
-        # Identifiers
-        "IDENTIFIER": r"^[a-z][a-z0-9_]*$",
-    }
+    # Keywords
+    "KEYWORD": [
+        r"I HAS A",
+        r"ITZ",
+        r"IF U SAY SO",
+        r"IM OUTTA YR",
+        r"QUOSHUNT OF",
+        r"PRODUKT OF",
+        r"BOTH SAEM",
+        r"EITHER OF",
+        r"SMALLR OF",
+        r"BIGGR OF",
+        r"DIFFRINT",
+        r"FOUND YR",
+        r"HOW IZ I",
+        r"IM IN YR",
+        r"IS NOW A",
+        r"BOTH OF",
+        r"DIFF OF",
+        r"KTHXBYE",
+        r"VISIBLE",
+        r"ALL OF",
+        r"ANY OF",
+        r"GIMMEH",
+        r"MOD OF",
+        r"NERFIN",
+        r"NO WAI",
+        r"NUMBAR",
+        "O RLY?",
+        r"OMGWTF",
+        r"SMOOSH",
+        r"SUM OF",
+        r"WON OF",
+        r"YA RLY",
+        r"MEBBE",
+        r"NUMBR",
+        r"TROOF",
+        r"UPPIN",
+        r"WAZZUP",
+        r"BUHBYE",
+        r"GTFO",
+        r"MAEK",
+        r"MKAY",
+        r"NOOB",
+        r"WILE",
+        "WTF?",
+        r"YARN",
+        r"HAI",
+        r"NOT",
+        r"OIC",
+        r"OMG",
+        r"TIL",
+        r"AN",
+        r"YR",
+        r"R"
+    ],
+    # Literals
+    "NUMBR": r"^-?\d+$",
+    "NUMBAR": r"^-?\d+\.\d+$",
+    "YARN": r"^\".*\"$",  # Matches complete YARN (strings enclosed in quotes)
+    "TROOF": r"\b(WIN|FAIL)\b",
+    # Identifiers
+    # "IDENTIFIER": r"^[a-z][a-z0-9_]*$",
+}
 
 yarn = r'\".*\"'
 
 def variable_checker(test_case):
-    global declared_variables, errors, in_wazzup
-    for line_number, tokens in enumerate(test_case):
+    global declared_variables, in_wazzup
+    
+    for tokens in test_case:
         first_token = tokens[0]
         
         # Start of WAZZUP block
@@ -99,39 +100,34 @@ def variable_checker(test_case):
         
         # Inside the WAZZUP block, append declared variables
         if in_wazzup:
-            declared_variables.append(tokens[0])
+            declared_variables.append(tokens[0])  # Append the variable name
 
-        # Check if variable is used before being declared
-        if first_token not in dict_matching and first_token not in declared_variables:
-            errors.append(f"Error: Variable '{first_token}' used before declaration.")
-
-def visible_checker(test_case):
+def visible_checker(test_case, index):
     global declared_variables, errors
-    visible_checker = False
-    for tokens in test_case:
-        first_token = tokens[0]
-        
-        if first_token == 'VISIBLE':
-            visible_checker = True
-            continue
-
-        if first_token not in dict_matching and first_token not in declared_variables:
-            continue
-
-
-
-            # for token in tokens[0:]:
-            #     if token not in reserved_keywords and token not in declared_variables:
-            #         errors.append(f"Error: Variable '{token}' used in VISIBLE before declaration.")
+    tokens = test_case[index]
+    first_token = tokens[0]
+    
+    if first_token == 'VISIBLE':
+        if index + 1 < len(test_case):
+            next_tokens = test_case[index + 1]
+            next_first_token = next_tokens[0]
+            print(next_first_token)
+            if next_first_token not in dict_matching and next_first_token not in declared_variables:
+                errors.append(f"Error: Variable '{next_first_token}' used in VISIBLE before declaration.")
 
 def main(test_case):
     global declared_variables, errors
     declared_variables.clear()  # Reset declared variables list
     errors.clear()  # Clear errors from previous runs
 
-    # Run the checkers
+    # Run the variable checker to collect all declared variables
     variable_checker(test_case)
-    visible_checker(test_case)
+
+    # Check each line for VISIBLE statements
+    for index, tokens in enumerate(test_case):
+        first_token = tokens[0]
+        if first_token == 'VISIBLE':
+            visible_checker(test_case, index)
 
     # Output the errors
     if not errors:
@@ -177,4 +173,3 @@ test_case = [
 
 # Run the main function with the provided test case
 main(test_case)
-# print(declared_variables)
