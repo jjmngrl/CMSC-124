@@ -6,7 +6,6 @@ Return value: True - valid identifier
 """
 
 def identifier_checker(token):
-    print("inside identifier checker")
     
     if token[1] == "IDENTIFIER": return True
     else: return False

@@ -1,5 +1,5 @@
-from explicit_typecast_checker import explicit_typecast_checker
-from data_type_checker import data_type_checker
+from syntax_functions import explicit_typecast_checker
+from syntax_functions import data_type_checker
 
 def recast_checker(tokens):
     """
@@ -14,8 +14,8 @@ def recast_checker(tokens):
     Returns:
         True if the recast statement is valid, or an error message if invalid.
     """
-    print("\nInside recast_checker")
-    print("Tokens to check:", tokens)
+    # print("\nInside recast_checker")
+    # print("Tokens to check:", tokens)
 
     if len(tokens) < 3:
         return "Error: Incomplete recast statement"
@@ -26,7 +26,7 @@ def recast_checker(tokens):
 
     # Case 1: varident IS NOW A <data_type>
     if len(tokens) >= 3 and tokens[1][0] == "IS NOW A" and tokens[1][1] == "KEYWORD":
-        if data_type_checker(tokens[2]):
+        if data_type_checker.data_type_checker(tokens[2]):
             print("Valid recast (varident IS NOW A <data_type>)")
             return True
         else:
@@ -36,7 +36,7 @@ def recast_checker(tokens):
     elif len(tokens) >= 2 and tokens[1][0] == "R" and tokens[1][1] == "KEYWORD":
         explicit_typecast_tokens = tokens[2:]  # Extract the tokens after 'R'
         print(explicit_typecast_tokens)
-        result = explicit_typecast_checker(explicit_typecast_tokens)
+        result = explicit_typecast_checker.explicit_typecast_checker(explicit_typecast_tokens)
         if result == True:
             print("Valid recast (varident R <explicit_typecast>)")
             return True
@@ -57,8 +57,8 @@ test_cases = [
     [("x", "IDENTIFIER"), ("IS NOW A", "KEYWORD")],                                                     # Invalid: Missing datatype
 ]
 
-# Run test cases
-for i, test in enumerate(test_cases, 1):
-    print(i)
-    result = recast_checker(test)
-    print(f"Test Case {i}: {'Valid' if result == True else result}")
+# # Run test cases
+# for i, test in enumerate(test_cases, 1):
+#     print(i)
+#     result = recast_checker(test)
+#     print(f"Test Case {i}: {'Valid' if result == True else result}")

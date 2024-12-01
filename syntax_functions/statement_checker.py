@@ -1,7 +1,15 @@
-from syntax_functions.switch_checker import switch_checker
-from syntax_functions.ifelse_checker import ifelse_checker
-from syntax_functions.variable_section_checker import variable_section_checker
-from syntax_functions.visible_statement_checker import visible_statement_checker
+from syntax_functions import switch_checker
+from syntax_functions import ifelse_checker
+from syntax_functions import variable_section_checker
+from syntax_functions import visible_statement_checker
+from syntax_functions import extract_flowcontrol_block
+from syntax_functions import func_call_checker
+from syntax_functions import loop_checker
+from syntax_functions import gimmeh_statement_checker
+from syntax_functions import function_checker
+from syntax_functions import assignment_checker
+from syntax_functions import expression_checker
+
 """ 
 Function to check if a statement is valid. Multiple statement_type checker will be called in this function
 Parameter: List containing each line of the lol code and the list of tokens
@@ -22,12 +30,10 @@ Dapat andito yung:
 
 
 """
-def statement_checker(code_block, classified_tokens, result):
-    print("Statement checker function.")
+def statement_checker(code_block, classified_tokens):
     wazzup_key = None
     buhbye_key = None
     variable_section_exists = False
-    print(code_block)
 
     """Check if there is a variable section"""
     for line_num, tokens in code_block.items():
@@ -35,118 +41,188 @@ def statement_checker(code_block, classified_tokens, result):
             if token_type == "KEYWORD" and token == "WAZZUP":
                 variable_section_exists = True
                 wazzup_key = line_num
-                print("There is a variable section in your program")
             if token_type == "KEYWORD" and token == "BUHBYE":
                 variable_section_exists = True
                 buhbye_key = line_num
-
+    
+    #raise error when there is no wazzup or buhbye
+    if wazzup_key == None and variable_section_exists:
+        raise Exception("ERROR: Invalid Variable Section due to missing WAZZUP")
+    if buhbye_key == None and variable_section_exists:
+        raise Exception("ERROR: Invalid Variable Section due to missing BUHBYE")
+        
 
     if variable_section_exists:
         #Check if variable section is valid
-        if variable_section_checker(code_block, classified_tokens, result):
+        if variable_section_checker.variable_section_checker(code_block, classified_tokens):
         #Create a new dictionary without the variable section to check what kind of statement are the remaining code
             new_code_block = {}
             for key, value in code_block.items():
-                if wazzup_key is not None and buhbye_key is not None:
-                    if wazzup_key <= key <= buhbye_key:
-                        continue #Skip key in the range of WAZZUP to BUHBYE
-                new_code_block[key] = value
+                if buhbye_key is not None and key > buhbye_key:
+                    new_code_block[key] = value  # Retain lines after BUHBYE
+            
+            code_block = new_code_block
+        
+    print("Variable exist result: ", variable_section_exists)
+    statement_flag = False
+    print("CODE BLOCK: \n", code_block)
+    """ Check succeeding line and determine the type of statement"""
+    current_line = list(code_block.keys())[0] #This is the first line after the variable declaration
+    while current_line in code_block:
+        tokens = code_block[current_line]
+        print(f"\nToken being checked in line {current_line}: ", tokens)
+        
+        if tokens == []:
+            current_line += 1
+            continue
+        #check for print statement
+        if visible_statement_checker.visible_statement_checker(current_line, tokens):
+            print("Valid print statement")
+            statement_flag = True
+            current_line += 1 #Move to the next line
 
-            code_block =new_code_block
-    
-    
-    else:
-        result.append(("Variable section check.", "No variable section found."))
-        print("Variable section check.", "No variable section found.")
-        # return False
+        #catch for if-else
+        elif tokens[0][0] == "O RLY?" and tokens[0][1] == "KEYWORD":
+            print(f"start of if-else block at line {current_line}")
+            extract_block, next_line = extract_flowcontrol_block.extract_ifelse_block(code_block, current_line)
+            print("Extracted block:\n", extract_block)
+            if ifelse_checker.ifelse_checker(extract_block):
+                print(f"valid if else block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(f"ERROR in line {current_line}:Invalid if-else block.")
+            current_line = next_line
 
-    """Check if there is an if-else block and validate it"""
-    # Check if there is an if-else block and validate it
-    ifelse_section_exists = False
+        #Catch switch
+        elif tokens[0][0] == "WTF?" and tokens[0][1] == "KEYWORD":
+            print(f"Start of switch-case block at line {current_line}")
+            extracted_block, next_line = extract_flowcontrol_block.extract_switch_block(code_block, current_line)
+            print("Extracted switch-case block:\n", extracted_block)
+            if switch_checker.switch_checker(extracted_block):
+                print(f"valid switch block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(f"ERROR in line {current_line}:Invalid switch block.")
+            current_line = next_line  # Move to the next line after the block
 
-    # First pass to check if any if-else block exists
-    for line_num, tokens in code_block.items():
-        for token, token_type in tokens:
-            if token_type == "KEYWORD" and token == "O RLY?":
-                ifelse_section_exists = True
-                break
-        if ifelse_section_exists:
-            break
+        #Catch function call
+        elif tokens[0][0] == "I IZ":
+            print(f"Function call at line {current_line}")
+            result = func_call_checker.function_call_checker(tokens, current_line)
+            if result == True:
+                print(f"Valid function call at line {current_line}")
+                statement_flag = True
+            else:
+                raise Exception(result)
 
-    if ifelse_section_exists:
-        current_ifelse_block = []
-        in_ifelse_block = False
-        block_start_line = None
-        ifelse_block_counter = 1
-        ifelse_blocks = {}
+            current_line += 1
 
-        # Second pass to process the if-else blocks
-        for line_num, tokens in code_block.items():
-            for token, token_type in tokens:
-                if token_type == "KEYWORD" and token == "O RLY?":
-                    ifelse_blocks[ifelse_block_counter] = []
-                    current_ifelse_block = ifelse_blocks[ifelse_block_counter]
-                    current_ifelse_block.append((token, token_type))
-                    in_ifelse_block = True
-                    block_start_line = line_num
-                elif token_type == "KEYWORD" and token == "OIC" and in_ifelse_block:
-                    current_ifelse_block.append((token, token_type))
-                    in_ifelse_block = False
-                    block_start_line = None
-                    ifelse_block_counter += 1
-                elif in_ifelse_block:
-                    current_ifelse_block.append((token, token_type))
-        print("\nIf-Else checker")
+        #catch loops
+        elif tokens[0][0] == "IM IN YR":
+            print(f"Start of loop black at line {current_line}")
+            extract_block, next_line = extract_flowcontrol_block.extract_loop_block(code_block, current_line)
+            print("Extracted loop block:\n", extract_block)
+            result = loop_checker.loop_checker(extract_block)
+            if result == True:
+                print(f"valid loop block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(result)
+            current_line = next_line  # Move to the next line after the block
 
-        for case_id, case in ifelse_blocks.items():
-            result = ifelse_checker({case_id: case})
-            print(f"If-else block: {ifelse_blocks} \n If-else {case_id}: {'Valid if-else statement' if result == True else result}")
-            print("\n")
+        #catch input
+        elif tokens[0][0] == "GIMMEH":
+            print(f"Input at line {current_line}")
 
-    else:
-        result.append(("If-else section check.", "No if-else section found."))
-        print("If-else section check.", "No if-else section found.")
+            if gimmeh_statement_checker.gimmeh_statement_checker(tokens):
+                print("Valid input/gimmeh statemet")
+            else:
+                raise Exception(f"ERROR at line {current_line}: Input statements must follow this format: GIMMEH <varident>")
 
-    # """Check if there is an if-else block and validate it"""
-# Check if there is an if-else block and validate it
-    switch_section_exists = False
+            current_line += 1
+        
+        #catch function
+        elif tokens[0][0] == "HOW IZ I":
+            print(f"Start of function block at line {current_line}")
+            extracted_block, next_line = function_checker.extract_function_block(code_block, current_line)
+            print("Extracted function block:\n",extracted_block)
+            result = function_checker.function_checker(extracted_block)
+            if result == True:
+                print(f"Valid functin block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(result)
 
-    # First pass to check if any if-else block exists
-    for line_num, tokens in code_block.items():
-        for token, token_type in tokens:
-            if token_type == "KEYWORD" and token == "WTF?":
-                switch_section_exists = True
-                break
-        if switch_section_exists:
-            break
-    
-    
-    if switch_section_exists:
-        switch_blocks = {}
-        current_switch_block = []
-        is_switch_case = False
-        block_start_line = None
-        switch_block_counter = 1
+            current_line = next_line
 
-        for line_num, tokens in code_block.items():
-            for token, token_type in tokens:
-                if token_type == "KEYWORD" and token == "WTF?":
-                    current_switch_block = [(token, token_type)]
-                    is_switch_case = True
-                    block_start_line = line_num
-                elif token_type == "KEYWORD" and token == "OIC" and is_switch_case:
-                    current_switch_block.append((token, token_type))
-                    is_switch_case = False
-                    switch_blocks[switch_block_counter] = current_switch_block
-                    block_start_line = None
-                    switch_block_counter += 1
-                elif is_switch_case:
-                    current_switch_block.append((token, token_type))
-        print("\nSwitch checker")
+        #catch expression
+        elif expression_checker.expression_checker(tokens[1:], False) == True:
+            print("Valid expression")
+            current_line += 1
+            
+        #catch assignment
+        elif tokens[1][0] == "R":
+            print(f"Assignment statement at line {current_line}")
+            result =  assignment_checker.assignment_checker(current_line, tokens)
+            if result:
+                print("Valid assignment statent")
+            else:
+                raise Exception(result)
+        
+            current_line += 1
+            
+        
 
-        for case_id, case in switch_blocks.items():
-            result = switch_checker({case_id: case})
-            print(f"Switch block: {switch_blocks} \n Switch {case_id}: {'Valid switch statement' if result == True else result}")
-            print("\n")
-    else:
-        print("Switch section check.", "No switch section found.")
+
+
+
+        
+        else:
+            current_line += 1
+    # for line_num, tokens in code_block.items():
+    #     print(f"\nToken being checked in line {line_num}: ", tokens)
+    #     if tokens == []:
+    #         continue
+    #     # for token, token_type in tokens:
+    #     #     if token == []: #skip the spac es
+    #     #         continue
+    #     #     print(token)
+
+    #         #Check for print statement
+    #     if visible_statement_checker.visible_statement_checker(line_num, tokens) == True:
+    #         print("Valid print statement")
+    #         statement_flag = True
+
+    #     #Catch for if-else
+    #     elif tokens[0][0] == "O RLY?" and tokens[0][1] == "KEYWORD":
+    #         print("start of if else")
+    #         extracted_block = extract_ifelse_block.extract_ifelse_block(code_block, line_num)
+    #         print("IF ELSE BLOCK: \n",extracted_block)
+    #         #Process the if-else blocks
+            
+
+    #         #
+
+    #         # print("if else block: ",ifelse_blocks)
+
+
+    #         # if line_num in ifelse_blocks:
+    #         #     print("Dictionary created for if else checker: \n", {line_num: ifelse_blocks[line_num]})
+    #         #     result = ifelse_checker.ifelse_checker({line_num: ifelse_blocks[line_num]})
+    #         #     print("RESULT!!: ", result)
+    #         #     if result:
+    #         #         print(f"valid if-else statement at block {line_num}")
+    #         #         statement_flag = True
+    #         #     else:
+    #         #         raise Exception(f"Invalid if-else statement at block {line_num}")
+                
+    #     # Check for switch block
+    #     elif switch_section_exists and token == "WTF?" and token_type == "KEYWORD":
+    #         if line_num in switch_blocks:
+    #             result = switch_checker.switch_checker({line_num: switch_blocks[line_num]})
+    #             if result:
+    #                 print(f"Valid switch statement at block {line_num}")
+    #                 statement_flag = True
+    #             else:
+    #                 raise Exception(f"Invalid switch statement at block {line_num}")
+    return statement_flag

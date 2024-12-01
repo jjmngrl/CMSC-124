@@ -18,7 +18,8 @@ def switch_checker(classified_tokens):
                 if token == "WTF?":
                     current_state = "EXPECT_OMG"
                 else:
-                    return f"Error: Missing WTF? at line {line_num}"
+                    Exception (f"Error: Missing WTF? at line {line_num}")
+                    # return f"Error: Missing WTF? at line {line_num}"
 
             elif current_state == "EXPECT_OMG":
                 if token == "OMG":
@@ -30,17 +31,20 @@ def switch_checker(classified_tokens):
                     current_state = "EXPECT_DEFAULT_STATEMENT"
                 elif token == "OIC":
                     if omg_stack:
-                        return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
+                        raise Exception (f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}") 
+                        # return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
                     current_state = "END"
                 else:
-                    return f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}"
+                    raise Exception(f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}")
+                    # return f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}"
 
             elif current_state == "EXPECT_LITERAL":
                 # Any literal type is acceptable
                 if token in ["NUMBR", "NUMBAR", "YARN", "TROOF"] or isinstance(token, str):
                     current_state = "EXPECT_STATEMENT"
                 else:
-                    return f"Error: Expected literal after OMG at line {line_num}"
+                    raise Exception (f"Error: Expected literal after OMG at line {line_num}")
+                    # return f"Error: Expected literal after OMG at line {line_num}"
 
             elif current_state == "EXPECT_STATEMENT":
                 if token == "GTFO":
@@ -49,14 +53,14 @@ def switch_checker(classified_tokens):
                     current_state = "EXPECT_OMG_OR_END"
                 elif token == "OMG":
                     if omg_stack:
-                        return f"Error: Missing GTFO before next OMG at line {line_num}"
+                        raise Exception (f"Error: Missing GTFO before next OMG at line {line_num}")
                 elif token == "OMGWTF":
                     if omg_stack and omg_stack[-1] == "OMG":
                         omg_stack.pop()  # Clear stack for OMG before OMGWTF
                     current_state = "EXPECT_DEFAULT_STATEMENT"
                 elif token == "OIC":
                     if omg_stack:
-                        return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
+                        raise Exception (f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}")
                     current_state = "END"
                 else:
                     # Allow valid statements to continue
@@ -72,10 +76,12 @@ def switch_checker(classified_tokens):
                     current_state = "EXPECT_DEFAULT_STATEMENT"
                 elif token == "OIC":
                     if omg_stack:
-                        return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
+                        raise Exception (f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}")
+                        # return f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}"
                     current_state = "END"
                 else:
-                    return f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}"
+                    raise Exception (f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}")
+                    # return f"Error: Expected OMG, OMGWTF, or OIC at line {line_num}"
 
             elif current_state == "EXPECT_DEFAULT_STATEMENT":
                 if token == "OIC":
@@ -86,10 +92,12 @@ def switch_checker(classified_tokens):
 
             elif current_state == "END":
                 # No tokens should follow OIC
-                return f"Error: Unexpected token after OIC at line {line_num}"
+                raise Exception (f"Error: Unexpected token after OIC at line {line_num}")
+                # return f"Error: Unexpected token after OIC at line {line_num}"
 
     # After processing all lines, ensure the block is correctly closed
     if current_state != "END":
-        return "Error: Incomplete switch-case block, missing OIC"
+        raise Exception ("Error: Incomplete switch-case block, missing OIC")
+        # return "Error: Incomplete switch-case block, missing OIC"
 
     return True

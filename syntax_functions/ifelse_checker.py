@@ -42,11 +42,13 @@ def ifelse_checker(classified_tokens):
                 valid_if_block = False
 
             if not valid_if_block:
-                return f"Invalid if-then block at line {line_num}"
+                raise Exception (f"Invalid if-then block at line {line_num}") 
+                # return f"Invalid if-then block at line {line_num}"
 
     # After parsing, ensure we've reached the "END" state
     if current_state != "END":
-        return "Invalid if-then block: missing OIC"
+        raise Exception ("Invalid if-then block: missing OIC") 
+        # return "Invalid if-then block: missing OIC"
 
     return True
 
