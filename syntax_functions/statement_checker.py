@@ -136,6 +136,7 @@ def statement_checker(code_block, classified_tokens):
 
             if gimmeh_statement_checker.gimmeh_statement_checker(tokens):
                 print("Valid input/gimmeh statemet")
+                statement_flag = True
             else:
                 raise Exception(f"ERROR at line {current_line}: Input statements must follow this format: GIMMEH <varident>")
 
@@ -159,6 +160,7 @@ def statement_checker(code_block, classified_tokens):
         elif expression_checker.expression_checker(tokens[1:], False) == True:
             print("Valid expression")
             current_line += 1
+            statement_flag = True
             
         #catch assignment
         elif tokens[1][0] == "R":
@@ -166,6 +168,7 @@ def statement_checker(code_block, classified_tokens):
             result =  assignment_checker.assignment_checker(current_line, tokens)
             if result:
                 print("Valid assignment statent")
+                statement_flag = True
             else:
                 raise Exception(result)
         
