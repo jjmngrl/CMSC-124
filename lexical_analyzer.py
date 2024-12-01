@@ -111,8 +111,9 @@ def classifier(lines):
             r"TIL",
             r"AN",
             r"YR",
+            r"IT",
             r"R",
-            r"IT"
+            r"A"
         ],
         # Literals
         "NUMBR": r"^-?\d+$",
