@@ -111,17 +111,19 @@ def function_checker(code_block):
 
                     
                     # elif expression_checker.expression_checker
-                    
-                    #elif assignment
-                    elif tokens[1][0] == "R":
-                        print(f"Assignment statement at line {current_line}")
-                        result =  assignment_checker.assignment_checker(current_line, tokens)
-                        if result:
-                            print("Valid assignment statent")
+                    if len(tokens) > 1:
+                        #elif assignment
+                        if tokens[1][0] == "R":
+                            print(f"Assignment statement at line {current_line}")
+                            result =  assignment_checker.assignment_checker(current_line, tokens)
+                            if result:
+                                print("Valid assignment statent")
+                            else:
+                                raise Exception(result)
+                        
+                            current_line += 1
                         else:
-                            raise Exception(result)
-                    
-                        current_line += 1
+                            current_line += 1
 
                     #elif func_call
                     elif tokens[0][0] == "I IZ":
