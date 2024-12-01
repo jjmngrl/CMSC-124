@@ -1,6 +1,6 @@
 
 
-from data_type_checker import data_type_checker
+from syntax_functions.data_type_checker import data_type_checker
 
 def explicit_typecast_checker(tokens):
     """

@@ -1,4 +1,4 @@
-from syntax_functions.variable_declaration_checker import variable_declaration_checker
+from syntax_functions import variable_declaration_checker
 
 """ 
 Function to check if the all variable declarations are enclosed in WAZZUP and BUHBYE
@@ -6,7 +6,7 @@ Parameter: List containing each line of the lol code and the list of tokens
 Return value: True - valid variable section
                 False - invalid variable section
 """
-def variable_section_checker(code_block, classified_tokens, result):
+def variable_section_checker(code_block, classified_tokens):
     print("\nVariable section checker")
     index_of_WAZZUP = None
     index_of_BUHBYE = None
@@ -16,16 +16,18 @@ def variable_section_checker(code_block, classified_tokens, result):
         for token, token_type in tokens:
             if token_type == "KEYWORD" and token == "WAZZUP":
                 index_of_WAZZUP = line_num
-                result.append((f"Line {line_num}: {tokens}", "WAZZUP found, start of variable section."))
+                # result.append((f"Line {line_num}: {tokens}", "WAZZUP found, start of variable section."))
             if token_type == "KEYWORD" and token == "BUHBYE":
                 index_of_BUHBYE = line_num
-                result.append((f"Line {line_num}: {tokens}", "BUHBYE found, end of variable section."))
+                # result.append((f"Line {line_num}: {tokens}", "BUHBYE found, end of variable section."))
 
     # Validate the existence and order of WAZZUP and BUHBYE
     if index_of_WAZZUP is None or index_of_BUHBYE is None or index_of_WAZZUP >= index_of_BUHBYE:
-        result.append(("Variable section check.", "ERROR: Missing or improperly ordered WAZZUP and BUHBYE."))
-        print("Variable section check.", "ERROR: Missing or improperly ordered WAZZUP and BUHBYE.")
-        return False
+        # result.append(("Variable section check.", "ERROR: Missing or improperly ordered WAZZUP and BUHBYE."))
+        # print("Variable section check.", "ERROR: Missing or improperly ordered WAZZUP and BUHBYE.")
+
+        raise Exception (f"ERROR: Missing or improperly ordered WAZZUP and BUHBYE.")
+        # return False
 
     # Extract the variable section (lines between WAZZUP and BUHBYE)
     variable_section = {
@@ -33,13 +35,15 @@ def variable_section_checker(code_block, classified_tokens, result):
         for k in sorted(classified_tokens.keys())
         if index_of_WAZZUP < k < index_of_BUHBYE
     }
-    print("variable section: \n", variable_section)
-
+    # print("variable section: \n", variable_section)
+    # print("variable section code: ", variable_section)
     # Validate the variable declarations in the extracted section
-    if variable_declaration_checker(variable_section, classified_tokens, result):
-        print("Variable section is valid.")
-        result.append(("", "Variable section is valid."))
+    if variable_declaration_checker.variable_declaration_checker(variable_section, classified_tokens):
+        # print("Variable section is valid.")
+        # result.append(("", "Variable section is valid."))
         return True
     else:
-        result.append(("", "ERROR: Invalid variable declarations in the variable section."))
-        return False
+        # result.append(("", "ERROR: Invalid variable declarations in the variable section."))
+        raise Exception ("ERROR: Invalid variable declarations in the variable section.")
+        # return False
+    

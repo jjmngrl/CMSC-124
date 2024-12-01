@@ -4,13 +4,13 @@ Parameter: Lines of code between WAZZUP and BUHBYE
 Return value: True - Valid Variable declarations
                 False - Invalid Variable declarations
 """
-def variable_declaration_checker(variable_section, classified_tokens, result):
+def variable_declaration_checker(variable_section, classified_tokens):
     valid_operations = ['SUM OF', 'DIFF OF', 'PRODUKT OF', 'QUOSHUNT OF', 'BIGGR OF', 'SMALLR OF', 'MOD OF']
     overall_flag = True
-    print("inside var declaration checker")
+    # print("inside var declaration checker")
     """Iterate through all possible Variable declaration inside WAZZUP and BUHBYE"""
     for line_num, tokens in variable_section.items():
-        print("checking line: ",tokens)
+        # print("checking line: ",tokens)
         flag = True
         if not tokens:
             continue
@@ -19,10 +19,11 @@ def variable_declaration_checker(variable_section, classified_tokens, result):
         if tokens[0][0] != "I HAS A" or tokens[0][1] != "KEYWORD":
             prompt = f"ERROR: Line must start with 'I HAS A'."
             flag = False
-            print("ERROR: Line must start with 'I HAS A'.")
+            # print("ERROR: Line must start with 'I HAS A'.")
+            raise Exception (f"ERROR in line {line_num}: Line must start with 'I HAS A'.")
             return False
         else:
-            print("Starts with I HAS A")
+            # print("Starts with I HAS A")
             variable_name = None
             itz_present = False
             value_part = None
@@ -30,9 +31,10 @@ def variable_declaration_checker(variable_section, classified_tokens, result):
             if len(tokens) > 1 and tokens[1][1] == "IDENTIFIER":
                 variable_name = tokens[1][0]
             else:
-                prompt = f"ERROR: Missing or invalid variable name after 'I HAS A'."
+                prompt = f"ERROR in line {line_num}: Missing or invalid variable name after 'I HAS A'."
                 flag = False
-                print("ERROR: Missing or invalid variable name after 'I HAS A'.")
+                # print("ERROR: Missing or invalid variable name after 'I HAS A'.")
+                raise Exception(prompt)
                 return False
 
 
@@ -46,8 +48,9 @@ def variable_declaration_checker(variable_section, classified_tokens, result):
 
             if itz_present:
                 if not value_part or len(value_part) == 0:
-                    prompt = f"ERROR: No value provided after 'ITZ'."
+                    prompt = f"ERROR in line {line_num}: No value provided after 'ITZ'."
                     flag = False
+                    raise Exception(prompt)
                     print("ERROR: No value provided after 'ITZ'.")
                     return False
                 else:
@@ -56,7 +59,8 @@ def variable_declaration_checker(variable_section, classified_tokens, result):
                     if first_type in ["NUMBR", "YARN", "NUMBAR", "TROOF"]:
                         """Check if yarn and if it is enclosed in quotation marks"""
                         if first_type == "YARN" and not (first_value.startswith('"') and first_value.endswith('"')):
-                            prompt = f"ERROR: YARN '{first_value}' is not properly enclosed in quotes."
+                            prompt = f"ERROR in line {line_num}: YARN '{first_value}' is not properly enclosed in quotes."
+                            raise Exception(prompt)
                             flag = False
                     elif first_type == "IDENTIFIER":
                         pass
@@ -78,7 +82,8 @@ def variable_declaration_checker(variable_section, classified_tokens, result):
                                 is_operand = False
 
                         if len(operands) < 2:
-                            prompt = f"ERROR: Operation '{first_value}' requires at least two operands."
+                            prompt = f"ERROR in line {line_num}: Operation '{first_value}' requires at least two operands."
+                            raise Exception(prompt)
                             flag = False
                         else:
                             for operand in operands:
@@ -87,18 +92,21 @@ def variable_declaration_checker(variable_section, classified_tokens, result):
                                     for line_tokens in classified_tokens.values()
                                     for token, token_type in line_tokens
                                 ):
-                                    prompt = f"ERROR: '{operand}' is not a valid operand."
+                                    prompt = f"ERROR in line {line_num}: '{operand}' is not a valid operand."
+                                    raise Exception(prompt)
                                     flag = False
                     else:
-                        prompt = f"ERROR: Invalid value '{value_part}' after 'ITZ'. Must be a valid literal, variable, or expression."
+                        prompt = f"ERROR in line {line_num}: Invalid value '{value_part}' after 'ITZ'. Must be a valid literal, variable, or expression."
+                        raise Exception(prompt)
                         flag = False
 
         if flag:
             prompt = "Valid variable declaration."
             print(prompt)
-        result.append((f"Line {line_num}: {tokens}", prompt))
+        # result.append((f"Line {line_num}: {tokens}", prompt))
 
         if not flag:
+            raise Exception("Invalid Variable Declaration")
             overall_flag = False
 
     return overall_flag
