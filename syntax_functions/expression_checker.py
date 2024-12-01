@@ -1,6 +1,5 @@
 from syntax_functions.data_type_checker import data_type_checker
 
-
 """ 
 Function to check if a token is a valid expression
 Parameter: Token 
@@ -50,13 +49,12 @@ def expression_checker(tokens, nested_bool_flag):
     elif tokens[0][0] in concatenation_operator and tokens[0][1] == "KEYWORD":
         return operator_functions['concatenation'](concatenation_operator, tokens, expression_operators)
     elif tokens[0][0] in comparison_operators and tokens[0][1] == "KEYWORD":
-        # Check for relational operators in the tokens
-        if any(token[0] in relational_operators for token in tokens):
-            # Call the 'relational' function if relational operators are found
-            return operator_functions['relational'](relational_operators, comparison_operators, tokens, expression_operators)
-        else:
-            # Otherwise, call the 'comparison' function
-            return operator_functions['comparison'](comparison_operators, tokens, expression_operators)
+        # Check if there's a relational operator with 'AN' before and after it
+        return operator_functions['relational'](relational_operators, comparison_operators, tokens, expression_operators) if any(
+            token[0] in relational_operators and 
+            i > 0 and tokens[i - 1][0] == 'AN'
+            for i, token in enumerate(tokens)
+        ) else operator_functions['comparison'](comparison_operators, tokens, expression_operators)
     elif tokens[0][0] in explicit_operator and tokens[0][1] == "KEYWORD":
         return operator_functions['explicit'](tokens)
     elif len(tokens)>1 and tokens[1][0] in recast_operator and tokens[1][1] == "KEYWORD":
@@ -578,6 +576,7 @@ def comparison_operation(operators, tokens, expression_operators):
 
 def relational_operation(relational_operators, comparison_operators, tokens, expression_operators):
     # Split tokens into two parts: comparison and relational
+    print("You're in relational")
     first_part = []
     second_part = []
     found_relational = False
@@ -686,6 +685,8 @@ def relational_operation(relational_operators, comparison_operators, tokens, exp
         print("ERROR: Invalid relational expression.")
         local_flag = False
 
+    if local_flag == True:
+        print("Valid relational expression")
     return local_flag
 
 def explicit_typecast_checker(tokens):
