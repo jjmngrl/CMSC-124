@@ -1,4 +1,5 @@
 from syntax_functions.data_type_checker import data_type_checker
+import re
 
 """ 
 Function to check if a token is a valid expression
@@ -7,7 +8,11 @@ Return value: True - valid expression
                 False - invalid expression
 """
 
-def expression_checker(tokens, nested_bool_flag):
+def expression_checker(tokens, symbol_table, nested_bool_flag):
+    print(tokens)
+    print()
+    print(symbol_table)
+    print()
     arithmetic_operators = ['SUM OF', 'DIFF OF', 'PRODUKT OF', 'QUOSHUNT OF', 'MOD OF', 'BIGGR OF', 'SMALLR OF']
     boolean_operators = ['BOTH OF', 'EITHER OF', 'WON OF', 'NOT']
     nested_boolean_operators = ['ALL OF', 'ANY OF']
@@ -41,7 +46,7 @@ def expression_checker(tokens, nested_bool_flag):
     
     # Check if the token is in any of the operator lists
     if tokens[0][0] in arithmetic_operators and tokens[0][1] == "KEYWORD":
-        return operator_functions['arithmetic'](arithmetic_operators, tokens)
+        return operator_functions['arithmetic'](arithmetic_operators, tokens, symbol_table)
     elif tokens[0][0] in boolean_operators and tokens[0][1] == "KEYWORD":
         return operator_functions['boolean'](boolean_operators, tokens, expression_operators, nested_bool_flag, [0])
     elif tokens[0][0] in nested_boolean_operators and tokens[0][1] == "KEYWORD":
@@ -63,9 +68,10 @@ def expression_checker(tokens, nested_bool_flag):
         print(f"Not an expression")  # If the token does not match any known operator
         return False  # Invalid expression
 
-def arithmetic_operation(operators, tokens):
+def arithmetic_operation(operators, tokens, symbol_table):
     stack = []
     local_flag = True
+    numbar_flag = 0
 
     # Iteratively process the stack for reductions
     for token_info in tokens:
@@ -79,6 +85,41 @@ def arithmetic_operation(operators, tokens):
             stack.append((token, "keyword"))
             # print(f"Added to stack as keyword: {stack}")
         elif token_type in ["NUMBR", "NUMBAR", "TROOF", "YARN", "IDENTIFIER"]:
+            if token_type == "IDENTIFIER":
+                # Check if it's in the symbol table
+                if token not in symbol_table:
+                    print(f"SEMANTICS ERROR: {token} not declared.")
+                    local_flag = False
+                    break
+                else:
+                    # Check if it's typecastable
+                    identifier_info = symbol_table[token]
+                    val = identifier_info['value']
+                    type = identifier_info['value_type']
+
+                    if type == 'NUMBR':
+                        pass
+                    elif type == 'NUMBAR':
+                        numbar_flag = 1
+                    elif type == 'TROOF':
+                        if val == 'FAIL':
+                            val = 0
+                            identifier_info['value'] = 0
+
+                            type = 'NUMBR'
+                            identifier_info['value_type'] = 'NUMBR'
+                        elif val == 'WIN':
+                            val = 1
+                            identifier_info['value'] = 1
+
+                            type = 'NUMBR'
+                            identifier_info['value_type'] = 'NUMBR'
+                        else:
+                            print("SEMANTICS ERROR: Invalid troof value")
+                    elif type == 'YARN':
+                        if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
+                            print("SEMANTICS ERROR: YARN not typecastable")
+
             stack.append((token, "operand"))
             # print(f"Added to stack as operand: {stack}")
         else:
@@ -97,11 +138,53 @@ def arithmetic_operation(operators, tokens):
                 operand1 = stack[-3][0]
                 operand2 = stack[-1][0]
                 reduced_expression = f"{operation} {operand1} AN {operand2}"
-                
-                # Replace the reduced portion of the stack with the reduced expression
-                stack = stack[:-4] + [(reduced_expression, "operand")]
-                
-                # print(f"Reduced to: {reduced_expression}")
+
+                # Evaluate operands immediately upon first reduction and store both expression and value
+                if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
+                    operand1_value = stack[-3][2]
+                else:
+                    # If not, use the raw operand (unprocessed token) from the stack
+                    operand1_value = int(symbol_table[operand1]['value']) if numbar_flag == 0 else float(symbol_table[operand1]['value'])
+
+                if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
+                    operand2_value = stack[-1][2]
+                else:
+                    # If not, use the raw operand (unprocessed token) from the stack
+                    operand2_value = int(symbol_table[operand2]['value']) if numbar_flag == 0 else float(symbol_table[operand2]['value'])
+
+                # Perform the operation and get the result
+                if operation == 'SUM OF':
+                    result = operand1_value + operand2_value
+                elif operation == 'DIFF OF':
+                    result = operand1_value - operand2_value
+                elif operation == 'PRODUKT OF':
+                    result = operand1_value * operand2_value
+                elif operation == 'QUOSHUNT OF':
+                    # Division with zero-checking
+                    if operand2_value == 0:
+                        print("ERROR: Division by zero.")
+                        local_flag = False
+                    result = operand1_value / operand2_value  # Result will be float if numbar_flag == 1
+                else:
+                    print(f"ERROR: Invalid operation '{operation}'.")
+                    local_flag = False
+
+                # Update the value of 'IT' in the symbol table
+                if 'IT' not in symbol_table:
+                    symbol_table['IT'] = {
+                        'type': 'IDENTIFIER',
+                        'value': result,
+                        'value_type': 'NUMBAR' if numbar_flag == 1 else 'NUMBR',
+                        'reference_environment': 'GLOBAL'
+                    }
+                else:
+                    symbol_table['IT']['value'] = result
+                    symbol_table['IT']['value_type'] = 'NUMBAR' if numbar_flag == 1 else 'NUMBR'
+
+                # Replace the reduced portion of the stack with both the reduced expression and evaluated value
+                stack = stack[:-4] + [(reduced_expression, "operand", result)]
+
+                # print(f"Reduced to: {reduced_expression} with result {result}")
     
     # After all reductions, check for the final step
     if len(stack) == 4:
@@ -114,10 +197,53 @@ def arithmetic_operation(operators, tokens):
             operand1 = stack[-3][0]
             operand2 = stack[-1][0]
             reduced_expression = f"{operation} {operand1} AN {operand2}"
+
+            # Evaluate operands immediately upon first reduction and store both expression and value
+            if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
+                operand1_value = stack[-3][2]
+            else:
+                # If not, use the raw operand (unprocessed token) from the stack
+                operand1_value = int(symbol_table[operand1]['value']) if numbar_flag == 0 else float(symbol_table[operand1]['value'])
+
+            if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
+                operand2_value = stack[-1][2]
+            else:
+                # If not, use the raw operand (unprocessed token) from the stack
+                operand2_value = int(symbol_table[operand2]['value']) if numbar_flag == 0 else float(symbol_table[operand2]['value'])
             
-            # Final reduction
-            stack = stack[:-4] + [(reduced_expression, "operand")]
-            # print(f"Final reduction: {reduced_expression}")
+            # Perform the operation and get the result
+            if operation == 'SUM OF':
+                result = operand1_value + operand2_value
+            elif operation == 'DIFF OF':
+                result = operand1_value - operand2_value
+            elif operation == 'PRODUKT OF':
+                result = operand1_value * operand2_value
+            elif operation == 'QUOSHUNT OF':
+                # Division with zero-checking
+                if operand2_value == 0:
+                    print("ERROR: Division by zero.")
+                    local_flag = False
+                result = operand1_value / operand2_value  # Result will be float if numbar_flag == 1
+            else:
+                print(f"ERROR: Invalid operation '{operation}'.")
+                local_flag = False
+
+            # Update the value of 'IT' in the symbol table
+            if 'IT' not in symbol_table:
+                symbol_table['IT'] = {
+                    'type': 'IDENTIFIER',
+                    'value': result,
+                    'value_type': 'NUMBAR' if numbar_flag == 1 else 'NUMBR',
+                    'reference_environment': 'GLOBAL'
+                }
+            else:
+                symbol_table['IT']['value'] = result
+                symbol_table['IT']['value_type'] = 'NUMBAR' if numbar_flag == 1 else 'NUMBR'
+
+            # Replace the reduced portion of the stack with both the reduced expression and evaluated value
+            stack = stack[:-4] + [(reduced_expression, "operand", result)]
+
+            # print(f"Reduced to: {reduced_expression} with result {result}")
 
     # Final state of the stack
     # print(f"Final stack: {stack}")
@@ -130,6 +256,7 @@ def arithmetic_operation(operators, tokens):
         local_flag = False
 
     return local_flag
+
 
 def boolean_operation(operators, tokens, expression_operators, nested_bool_flag, an_count_container):
     stack = []
@@ -776,4 +903,3 @@ def recast_checker(tokens):
             return result
 
     return "Error: Invalid recast statement"
-
