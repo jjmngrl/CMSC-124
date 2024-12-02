@@ -107,16 +107,10 @@ def arithmetic_operation(operators, tokens, symbol_table):
                     elif type == 'TROOF':
                         if val == 'FAIL':
                             val = 0
-                            identifier_info['value'] = 0
-
                             type = 'NUMBR'
-                            identifier_info['value_type'] = 'NUMBR'
                         elif val == 'WIN':
                             val = 1
-                            identifier_info['value'] = 1
-
                             type = 'NUMBR'
-                            identifier_info['value_type'] = 'NUMBR'
                         else:
                             print("SEMANTICS ERROR: Invalid troof value")
                     elif type == 'YARN':
