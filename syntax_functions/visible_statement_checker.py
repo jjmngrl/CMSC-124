@@ -34,7 +34,7 @@ def visible_statement_checker(line_num, tokens):
                 flag = True
 
             # Check if it's a valid expression
-            elif  len(visible_part) > 2:
+            elif  len(visible_part) >= 2:
                 if expression_checker(tokens[1:], False) == True:
                     # result.append("Valid expression")
                     flag = True
