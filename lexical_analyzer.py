@@ -15,7 +15,7 @@ Reads a LOLCODE file and removes comments and empty lines.
 """
 
 def read():
-    file = r"test case/03_arith.lol"
+    file = r"test case/06_comparison.lol"
     if file.endswith(".lol"):
         with open(file, 'r') as f:
             lines = f.readlines()
