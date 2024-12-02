@@ -643,6 +643,8 @@ def comparison_operation(operators, tokens, expression_operators):
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
+    numbar_flag = 0
+    numbr_flag = 0
 
     # Iteratively process the stack for reductions
     while index < len(tokens):
@@ -667,15 +669,21 @@ def comparison_operation(operators, tokens, expression_operators):
                     val = identifier_info['value']
                     type = identifier_info['value_type']
 
-                    if type == 'NUMBR' or type == 'NUMBAR':
-                        pass
+                    if type == 'NUMBR':
+                        numbr_flag = 1
+                    elif type == 'NUMBAR':
+                        numbar_flag = 1
                     else:
                         print(f"SEMANTICS ERROR: {val} is not a NUMBR/NUMBAR variable")
                         local_flag = False
                         break
             else:
-                if token_type == 'NUMBR' or token_type == 'NUMBAR':
+                if token_type == 'NUMBR':
                     val = token
+                    numbr_flag = 1
+                elif token_type == 'NUMBAR':
+                    val = token
+                    numbar_flag = 1
                 else: 
                     print(f"SEMANTICS ERROR: {val} is not a NUMBR/NUMBAR literal")
                     local_flag = False
@@ -684,6 +692,11 @@ def comparison_operation(operators, tokens, expression_operators):
             stack.append((token, "operand", index))  # Add operand to stack
         else:
             print(f"ERROR: Invalid token '{token}' in comparison.")
+            local_flag = False
+            break
+        
+        if numbar_flag == 1 and numbr_flag == 1:
+            print(f"SEMANTICS ERROR: Operands should be all NUMBRs or all NUMBARs")
             local_flag = False
             break
 
@@ -1034,4 +1047,5 @@ def recast_checker(tokens):
             return result
 
     return "Error: Invalid recast statement"
+
 
