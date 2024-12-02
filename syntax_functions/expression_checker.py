@@ -9,10 +9,6 @@ Return value: True - valid expression
 """
 
 def expression_checker(tokens, symbol_table, nested_bool_flag):
-    print(tokens)
-    print()
-    print(symbol_table)
-    print()
     arithmetic_operators = ['SUM OF', 'DIFF OF', 'PRODUKT OF', 'QUOSHUNT OF', 'MOD OF', 'BIGGR OF', 'SMALLR OF']
     boolean_operators = ['BOTH OF', 'EITHER OF', 'WON OF', 'NOT']
     nested_boolean_operators = ['ALL OF', 'ANY OF']
@@ -91,34 +87,33 @@ def arithmetic_operation(operators, tokens, symbol_table):
                     print(f"SEMANTICS ERROR: {token} not declared.")
                     local_flag = False
                     break
+            # Check if it's typecastable
+            identifier_info = symbol_table[token]
+            val = identifier_info['value']
+            type = identifier_info['value_type']
+
+            if type == 'NUMBR':
+                pass
+            elif type == 'NUMBAR':
+                numbar_flag = 1
+            elif type == 'TROOF':
+                if val == 'FAIL':
+                    val = 0
+                    identifier_info['value'] = 0
+
+                    type = 'NUMBR'
+                    identifier_info['value_type'] = 'NUMBR'
+                elif val == 'WIN':
+                    val = 1
+                    identifier_info['value'] = 1
+
+                    type = 'NUMBR'
+                    identifier_info['value_type'] = 'NUMBR'
                 else:
-                    # Check if it's typecastable
-                    identifier_info = symbol_table[token]
-                    val = identifier_info['value']
-                    type = identifier_info['value_type']
-
-                    if type == 'NUMBR':
-                        pass
-                    elif type == 'NUMBAR':
-                        numbar_flag = 1
-                    elif type == 'TROOF':
-                        if val == 'FAIL':
-                            val = 0
-                            identifier_info['value'] = 0
-
-                            type = 'NUMBR'
-                            identifier_info['value_type'] = 'NUMBR'
-                        elif val == 'WIN':
-                            val = 1
-                            identifier_info['value'] = 1
-
-                            type = 'NUMBR'
-                            identifier_info['value_type'] = 'NUMBR'
-                        else:
-                            print("SEMANTICS ERROR: Invalid troof value")
-                    elif type == 'YARN':
-                        if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
-                            print("SEMANTICS ERROR: YARN not typecastable")
+                    print("SEMANTICS ERROR: Invalid troof value")
+            elif type == 'YARN':
+                if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
+                    print("SEMANTICS ERROR: YARN not typecastable")
 
             stack.append((token, "operand"))
             # print(f"Added to stack as operand: {stack}")
