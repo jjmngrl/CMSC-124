@@ -1,5 +1,4 @@
 from syntax_functions.data_type_checker import data_type_checker
-from syntax_functions import explicit_typecast_checker
 from syntax_functions  import semantics_functions
 from syntax_functions import assignment_checker
 from syntax_functions.explicit_typecast_checker import to_different_types
