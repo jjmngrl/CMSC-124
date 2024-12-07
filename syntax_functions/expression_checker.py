@@ -51,9 +51,9 @@ def expression_checker(tokens, symbol_table, flag=False):
     if tokens[0][0] in arithmetic_operators and tokens[0][1] == "KEYWORD":
         return operator_functions['arithmetic'](arithmetic_operators, tokens, symbol_table)
     elif tokens[0][0] in boolean_operators and tokens[0][1] == "KEYWORD":
-        return operator_functions['boolean'](boolean_operators, tokens, expression_operators, flag, [0])
+        return operator_functions['boolean'](boolean_operators, tokens, symbol_table, expression_operators, flag, [0])
     elif tokens[0][0] in nested_boolean_operators and tokens[0][1] == "KEYWORD":
-        return operator_functions['nested_boolean'](nested_boolean_operators, tokens, expression_operators)
+        return operator_functions['nested_boolean'](nested_boolean_operators, tokens, symbol_table, expression_operators)
     elif tokens[0][0] in concatenation_operator and tokens[0][1] == "KEYWORD":
         return operator_functions['concatenation'](concatenation_operator, tokens, expression_operators, symbol_table)
     elif tokens[0][0] in comparison_operators and tokens[0][1] == "KEYWORD":
@@ -70,8 +70,9 @@ def expression_checker(tokens, symbol_table, flag=False):
     else:
         print(f"Not an expression")  #If the token does not match any known operator
         return False  # Invalid expression
-
 def arithmetic_operation(operators, tokens, symbol_table):
+    print("you are now in arithmetic")
+    print("symbol table: ", symbol_table)
     stack = []
     local_flag = True
     numbar_flag = 0
@@ -80,6 +81,8 @@ def arithmetic_operation(operators, tokens, symbol_table):
     for token_info in tokens:
         token, token_type = token_info  # Unpack the token and its type
         
+        print()
+        print("token: ", token)
         # Check if the token is an operator
         if token in operators and token_type == "KEYWORD":
             stack.append((token, "operation"))
@@ -88,6 +91,8 @@ def arithmetic_operation(operators, tokens, symbol_table):
             stack.append((token, "keyword"))
             # print(f"Added to stack as keyword: {stack}")
         elif token_type in ["NUMBR", "NUMBAR", "TROOF", "YARN", "IDENTIFIER"]:
+            print("val token: ", token)
+
             if token_type == "IDENTIFIER":
                 # Check if it's in the symbol table
                 if token not in symbol_table:
@@ -96,9 +101,10 @@ def arithmetic_operation(operators, tokens, symbol_table):
                     break
                 else:
                     # Check if it's typecastable
-                    # print("token: ", token)
-                    # print("symbol_table[token]: ", symbol_table[token])
+                    print("symbol_table[token]: ", symbol_table[token])
                     identifier_info = symbol_table[token]
+                    print("identifier_info: ", identifier_info)
+                    print()
                     val = identifier_info['value']
                     type = identifier_info['value_type']
 
@@ -114,26 +120,30 @@ def arithmetic_operation(operators, tokens, symbol_table):
                             val = 1
                             type = 'NUMBR'
                         else:
-                            print("SEMANTICS ERROR: Invalid troof value")
+                            print("SEMANTICS ERROR: 1Invalid troof value")
+                            return False
                     elif type == 'YARN':
                         if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
                             print("SEMANTICS ERROR: YARN not typecastable")
-
-            if token_type == 'NUMBR':
+                            return False
+            elif token_type == 'NUMBR':
                 val = token
             elif token_type == 'NUMBAR':
                 numbar_flag = 1
                 val = token
             elif token_type == 'TROOF':
-                if val == 'FAIL':
+                print(f"token:{token}.")
+                if token == 'FAIL':
                     val = 0
-                elif val == 'WIN':
+                elif token == 'WIN':
                     val = 1
                 else:
-                    print("SEMANTICS ERROR: Invalid troof value")
+                    print("SEMANTICS ERROR: 2Invalid troof value")
+                    return False
             elif token_type == 'YARN':
                 if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
                     print("SEMANTICS ERROR: YARN not typecastable")
+                    return False
             # print(val)
             stack.append((val, "operand"))
             # print(f"Added to stack as operand: {stack}")
@@ -178,6 +188,7 @@ def arithmetic_operation(operators, tokens, symbol_table):
                     else:
                         operand2_value = int(operand2)
 
+                print(f"operation:{operation}.")
                 # Perform the operation and get the result
                 if operation == 'SUM OF':
                     result = operand1_value + operand2_value
@@ -188,9 +199,15 @@ def arithmetic_operation(operators, tokens, symbol_table):
                 elif operation == 'QUOSHUNT OF':
                     # Division with zero-checking
                     if operand2_value == 0:
-                        print("ERROR: Division by zero.")
+                        print("SEMANTIC ERROR: Division by zero.")
                         local_flag = False
                     result = operand1_value / operand2_value  # Result will be float if numbar_flag == 1
+                elif operation == 'MOD OF':
+                    result = operand1_value % operand2_value
+                elif operation == 'BIGGR OF':
+                    result = max(operand1_value, operand2_value)
+                elif operation == 'SMALLR OF':
+                    result = min(operand1_value, operand2_value)
                 else:
                     print(f"ERROR: Invalid operation '{operation}'.")
                     local_flag = False
@@ -248,6 +265,8 @@ def arithmetic_operation(operators, tokens, symbol_table):
 
 
             # Perform the operation and get the result
+            print(f"operation:{operation}.")
+            # Perform the operation and get the result
             if operation == 'SUM OF':
                 result = operand1_value + operand2_value
             elif operation == 'DIFF OF':
@@ -257,9 +276,15 @@ def arithmetic_operation(operators, tokens, symbol_table):
             elif operation == 'QUOSHUNT OF':
                 # Division with zero-checking
                 if operand2_value == 0:
-                    print("ERROR: Division by zero.")
+                    print("SEMANTIC ERROR: Division by zero.")
                     local_flag = False
                 result = operand1_value / operand2_value  # Result will be float if numbar_flag == 1
+            elif operation == 'MOD OF':
+                result = operand1_value % operand2_value
+            elif operation == 'BIGGR OF':
+                result = max(operand1_value, operand2_value)
+            elif operation == 'SMALLR OF':
+                result = min(operand1_value, operand2_value)
             else:
                 print(f"ERROR: Invalid operation '{operation}'.")
                 local_flag = False
@@ -294,7 +319,8 @@ def arithmetic_operation(operators, tokens, symbol_table):
     return local_flag
 
 
-def boolean_operation(operators, tokens, expression_operators, nested_bool_flag, an_count_container, bool_operator = None):
+
+def boolean_operation(operators, tokens, symbol_table, expression_operators, nested_bool_flag, an_count_container, bool_operator = None):
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
@@ -373,6 +399,19 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
             reduced_expression = f"NOT {operand}"
             reduced_index = (stack[-2][2], index)  # Use the indices of the "NOT" and the operand
             stack = stack[:-2]  # Remove the "NOT" and the operand
+
+            # Update the value of 'IT' in the symbol table
+            if 'IT' not in symbol_table:
+                symbol_table['IT'] = {
+                    'type': 'IDENTIFIER',
+                    'value': 'WIN' if operand == 'FAIL' else 'FAIL',
+                    'value_type': 'TROOF',
+                    'reference_environment': 'GLOBAL'
+                }
+            else:
+                symbol_table['IT']['value'] = 'WIN' if operand == 'FAIL' else 'FAIL'
+                symbol_table['IT']['value_type'] = 'TROOF'
+
             stack.append(('WIN' if operand == 'FAIL' else 'FAIL', "operand", reduced_index))  # Add the reduced expression
 
             # Print the reduction of "NOT"
@@ -387,6 +426,19 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                         reduced_index = (stack[-2][2], stack[-1][2][1])  # Use the indices of the "NOT" and the operand
 
                         stack = stack[:-2]  # Remove the "NOT" and the operand
+
+                        # Update the value of 'IT' in the symbol table
+                        if 'IT' not in symbol_table:
+                            symbol_table['IT'] = {
+                                'type': 'IDENTIFIER',
+                                'value': 'WIN' if operand == 'FAIL' else 'FAIL',
+                                'value_type': 'TROOF',
+                                'reference_environment': 'GLOBAL'
+                            }
+                        else:
+                            symbol_table['IT']['value'] = 'WIN' if operand == 'FAIL' else 'FAIL'
+                            symbol_table['IT']['value_type'] = 'TROOF'
+
                         stack.append(('WIN' if operand == 'FAIL' else 'FAIL', "operand", reduced_index))  # Add the reduced expression
 
                         # Update the value of 'IT' in the symbol table
@@ -495,6 +547,19 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                             reduced_index = (stack[-2][2], stack[-1][2][1])  # Use the indices of the "NOT" and the operand
                             stack = stack[:-2]  # Remove the "NOT" and the operand
                             # print("stack: ", stack)
+
+                            # Update the value of 'IT' in the symbol table
+                            if 'IT' not in symbol_table:
+                                symbol_table['IT'] = {
+                                    'type': 'IDENTIFIER',
+                                    'value': 'WIN' if operand == 'FAIL' else 'FAIL',
+                                    'value_type': 'TROOF',
+                                    'reference_environment': 'GLOBAL'
+                                }
+                            else:
+                                symbol_table['IT']['value'] = 'WIN' if operand == 'FAIL' else 'FAIL'
+                                symbol_table['IT']['value_type'] = 'TROOF'
+
                             stack.append(('WIN' if operand == 'FAIL' else 'FAIL', "operand", reduced_index))  # Add the reduced expression
                             # print("stack: ", stack)
 
@@ -681,7 +746,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
         print("ERROR: Invalid Boolean Expression")
     return local_flag
 
-def nested_boolean_operation(operators, tokens, expression_operators):
+def nested_boolean_operation(operators, tokens, symbol_table, expression_operators):
     an_count_container = [0]  # Initialize an_count as a list to simulate pass-by-reference
 
     # Check if the first token is a valid operator and the last token is 'MKAY'
@@ -706,7 +771,7 @@ def nested_boolean_operation(operators, tokens, expression_operators):
         print()
         # Pass the container to the boolean_operation function
         reduced_expression, remaining_tokens, local_flag = boolean_operation(
-            operators, remaining_tokens, expression_operators, nested_bool_flag=True, an_count_container=an_count_container, bool_operator=nested_operator
+            operators, remaining_tokens, symbol_table, expression_operators, nested_bool_flag=True, an_count_container=an_count_container, bool_operator=nested_operator
         )
         print("reduced_expression: ", reduced_expression)
         print("remaining_tokens: ", remaining_tokens)
