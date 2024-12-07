@@ -27,11 +27,14 @@ def read():
                 # Handle multi-line comments
                 if line.startswith("OBTW"):
                     in_multiline_comment = True
+                    data.append("")
                     continue
                 elif line.startswith("TLDR"):
+                    data.append("")
                     in_multiline_comment = False
                     continue
                 if in_multiline_comment:
+                    data.append("")
                     continue
                 
                 # Handle single-line comments
@@ -87,6 +90,7 @@ def classifier(lines):
             r"SUM OF",
             r"WON OF",
             r"YA RLY",
+            r"I IZ",
             r"MEBBE",
             r"NUMBR",
             r"TROOF",
@@ -107,7 +111,9 @@ def classifier(lines):
             r"TIL",
             r"AN",
             r"YR",
-            r"R"
+            r"IT",
+            r"R",
+            r"A"
         ],
         # Literals
         "NUMBR": r"^-?\d+$",
