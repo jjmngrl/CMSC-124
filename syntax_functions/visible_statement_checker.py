@@ -2,6 +2,7 @@ from syntax_functions.validate_expression import validate_expression
 from syntax_functions.literal_checker import literal_checker
 from syntax_functions.identifier_checker import identifier_checker
 from syntax_functions.expression_checker import expression_checker
+from syntax_functions import semantics_functions
 
 def visible_statement_checker(line_num, tokens):
     # Start by adding a log entry to show we're inside the visible statement checker
@@ -32,13 +33,21 @@ def visible_statement_checker(line_num, tokens):
             elif identifier_checker(visible_part[0]) == True:
                 # result.append("Valid identifier")
                 flag = True
+                #check if the variable is in the symbol table
+                result = semantics_functions.symbol_exists(visible_part[0][0])
+                var_name = tokens[0][0]
+                # print("result" ,result) 
+                if not result:
+                    raise Exception(f"Error in line {line_num}: Variable {visible_part[0][0]} is not declared")
+        
 
+            
             # Check if it's a valid expression
-            elif  len(visible_part) > 2:
+            elif  len(visible_part) >= 2:
                 if expression_checker(tokens[1:], False) == True:
                     # result.append("Valid expression")
                     flag = True
-
+                    
             # Check if the keyword is 'IT'
             elif first_value == "IT":
                 #Check if there is a token after IT

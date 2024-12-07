@@ -3,8 +3,6 @@ from syntax_functions.parameter_checker import parameter_checker
 from syntax_functions.identifier_checker import identifier_checker
 
 def function_call_checker(tokens, line_num):
-    print("\ninside function call checker")
-    print(tokens)
     """
     Validates function calls in LOLCODE based on the specified grammar:
     - I IZ funcident YR <parameter> MKAY
@@ -14,8 +12,6 @@ def function_call_checker(tokens, line_num):
     param_tokens = []  # To collect parameter tokens for validation
 
     for idx, token in enumerate(tokens):
-        print("idx: ",idx)
-        print(current_state)
         # print(tokens_in_line)
         
         # # Flatten tokens for easier parsing
@@ -48,7 +44,7 @@ def function_call_checker(tokens, line_num):
             #catch case that there is no parameter after YR
             if param_tokens == []:
                 return f"ERROR at line {line_num}: Expected 'MKAY'"
-            if parameter_checker(param_tokens, line_num):
+            if parameter_checker(param_tokens, line_num) == True:
                 current_state = "EXPECT_MKAY"
             else:
                 return f"ERROR at line {line_num}: Invalid parameter"
@@ -68,37 +64,3 @@ def function_call_checker(tokens, line_num):
 
     return True
     
-
-
-# Example test cases to validate the modified function_call_checker
-# test_cases = {
-#     1: [["I IZ", "KEYWORD"], ["myFunc", "IDENTIFIER"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-#     2: [["I IZ", "KEYWORD"], ["anotherFunc", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-#     3: [["I IZ", "KEYWORD"], ["myFunc", "IDENTIFIER"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"]],
-#     4: [["I IZ", "KEYWORD"], ["anotherFunc", "IDENTIFIER"], ["MKAY", "KEYWORD"], ["unexpected", "IDENTIFIER"]],
-#     5: [["myFunc", "IDENTIFIER"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-#     6: [["I IZ", "KEYWORD"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-# }
-
-# # Run each test case
-# for case_id, case in test_cases.items():
-#     result = function_call_checker({1: case})
-#     print(f"Test Case {case_id}: {'Valid' if result == True else result}")
-
-
-
-# # Define test cases
-# test_cases = {
-#     1: [["I IZ", "KEYWORD"], ["myFunc", "IDENTIFIER"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-#     2: [["I IZ", "KEYWORD"], ["anotherFunc", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-#     3: [["I IZ", "KEYWORD"], ["myFunc", "IDENTIFIER"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"]],
-#     4: [["I IZ", "KEYWORD"], ["anotherFunc", "IDENTIFIER"], ["MKAY", "KEYWORD"], ["unexpected", "IDENTIFIER"]],
-#     5: [["myFunc", "IDENTIFIER"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"], ["MKAY", "KEYWORD"]],
-#     6: [["I IZ", "KEYWORD"], ["YR", "KEYWORD"], ["param1", "IDENTIFIER"], ["MKAY", "KEYWORD"]]
-# }
-
-# # Run each test case
-# for case_id, case in test_cases.items():
-#     result = function_call_checker({1: case})
-#     print(f"Test Case {case_id}: {'Valid' if result == True else result}")
-

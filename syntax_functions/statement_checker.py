@@ -71,7 +71,15 @@ def statement_checker(code_block, classified_tokens):
     while current_line in code_block:
         tokens = code_block[current_line]
         print(f"\nToken being checked in line {current_line}: ", tokens)
-        
+
+        # print(code_block[current_line+1])
+        if current_line < list(code_block.keys())[-1]:
+            catch_wtf = code_block[current_line+1]
+            # print(catch_wtf)
+            switch_exist = False
+            if catch_wtf != []:
+                switch_exist = True
+            # print(catch_wtf[0])
         if tokens == []:
             current_line += 1
             continue
@@ -94,16 +102,17 @@ def statement_checker(code_block, classified_tokens):
             current_line = next_line
 
         #Catch switch
-        elif tokens[0][0] == "WTF?" and tokens[0][1] == "KEYWORD":
-            print(f"Start of switch-case block at line {current_line}")
-            extracted_block, next_line = extract_flowcontrol_block.extract_switch_block(code_block, current_line)
+        elif switch_exist == True and catch_wtf[0][0] == "WTF?":
+            print(f"Start of switch-case block at line {current_line+1}")
+            extracted_block, next_line = extract_flowcontrol_block.extract_switch_block(code_block, current_line+1)
             print("Extracted switch-case block:\n", extracted_block)
             if switch_checker.switch_checker(extracted_block):
-                print(f"valid switch block at line {current_line} to line {next_line-1}")
+                print(f"valid switch block at line {current_line+1} to line {next_line+1}")
                 statement_flag = True
             else:
-                raise Exception(f"ERROR in line {current_line}:Invalid switch block.")
+                raise Exception(f"ERROR in line {current_line+1}:Invalid switch block.")
             current_line = next_line  # Move to the next line after the block
+            # current_line += 1
 
         #Catch function call
         elif tokens[0][0] == "I IZ":
@@ -136,6 +145,7 @@ def statement_checker(code_block, classified_tokens):
 
             if gimmeh_statement_checker.gimmeh_statement_checker(tokens):
                 print("Valid input/gimmeh statemet")
+                statement_flag = True
             else:
                 raise Exception(f"ERROR at line {current_line}: Input statements must follow this format: GIMMEH <varident>")
 
@@ -159,6 +169,7 @@ def statement_checker(code_block, classified_tokens):
         elif expression_checker.expression_checker(tokens[1:], False) == True:
             print("Valid expression")
             current_line += 1
+            statement_flag = True
             
         #catch assignment
         elif tokens[1][0] == "R":
@@ -166,6 +177,7 @@ def statement_checker(code_block, classified_tokens):
             result =  assignment_checker.assignment_checker(current_line, tokens)
             if result:
                 print("Valid assignment statent")
+                statement_flag = True
             else:
                 raise Exception(result)
         
@@ -178,6 +190,7 @@ def statement_checker(code_block, classified_tokens):
 
         
         else:
+            print("Nah")
             current_line += 1
     # for line_num, tokens in code_block.items():
     #     print(f"\nToken being checked in line {line_num}: ", tokens)
