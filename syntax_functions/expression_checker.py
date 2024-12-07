@@ -317,8 +317,46 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
             an_count += 1  # Increment AN count
             an_count_container[0] = an_count  # Update the count in the container
         elif token_type in ["NUMBR", "NUMBAR", "TROOF", "YARN", "IDENTIFIER"]:
-            # print(f"Token '{token}' is an operand.")
-            stack.append((token, "operand", index))
+            # Process operands
+            if token_type == "IDENTIFIER":
+                # Check if it's in the symbol table
+                if token not in symbol_table:
+                    print(f"SEMANTICS ERROR: {token} not declared.")
+                    local_flag = False
+                    break
+                else:
+                    # Handle IDENTIFIER logic
+                    identifier_info = symbol_table[token]
+                    val = identifier_info['value']
+                    type = identifier_info['value_type']
+
+                    # print("val: ", val)
+                    # print("type: ", type)
+
+                    if type == 'NUMBR':
+                        val = int(val)  # Convert string to integer for numeric comparison
+                        val = 'WIN' if val != 0 else 'FAIL'
+                    elif type == 'NUMBAR':
+                        val = float(val)  # Convert to float if it's a number
+                        val = 'WIN' if val != 0 else 'FAIL'
+                    elif type == 'TROOF':
+                        pass  # Handle TROOF if necessary
+                    elif type == 'YARN':
+                        val = 'WIN' if val != "" else 'FAIL'
+            # For direct NUMBR types
+            elif type == 'NUMBR':
+                val = int(val)  # Convert string to integer for numeric comparison
+                val = 'WIN' if val != 0 else 'FAIL'
+            elif type == 'NUMBAR':
+                val = float(val)  # Convert to float if it's a number
+                val = 'WIN' if val != 0 else 'FAIL'
+            elif type == 'TROOF':
+                pass  # Handle TROOF if necessary
+            elif type == 'YARN':
+                val = 'WIN' if val != "" else 'FAIL'
+
+            # print("val: ", val)
+            stack.append((val, "operand", index))
         else:
             # Exception (f"ERROR: Invalid token '{token}' in boolean operation.")
             print(f"ERROR: Invalid token '{token}' in boolean operation.")
@@ -331,7 +369,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
             reduced_expression = f"NOT {operand}"
             reduced_index = (stack[-2][2], index)  # Use the indices of the "NOT" and the operand
             stack = stack[:-2]  # Remove the "NOT" and the operand
-            stack.append((reduced_expression, "operand", reduced_index))  # Add the reduced expression
+            stack.append(('WIN' if operand == 'FAIL' else 'FAIL', "operand", reduced_index))  # Add the reduced expression
 
             # Print the reduction of "NOT"
             # print(f"Reduced 'NOT' expression: {reduced_expression}")
@@ -343,8 +381,21 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                         operand = stack[-1][0]
                         reduced_expression = f"NOT {operand}"
                         reduced_index = (stack[-2][2], stack[-1][2][1])  # Use the indices of the "NOT" and the operand
+
                         stack = stack[:-2]  # Remove the "NOT" and the operand
-                        stack.append((reduced_expression, "operand", reduced_index))  # Add the reduced expression
+                        stack.append(('WIN' if operand == 'FAIL' else 'FAIL', "operand", reduced_index))  # Add the reduced expression
+
+                        # Update the value of 'IT' in the symbol table
+                        if 'IT' not in symbol_table:
+                            symbol_table['IT'] = {
+                                'type': 'IDENTIFIER',
+                                'value': 'WIN' if operand == 'FAIL' else 'FAIL',
+                                'value_type': 'TROOF',
+                                'reference_environment': 'GLOBAL'
+                            }
+                        else:
+                            symbol_table['IT']['value'] = 'WIN' if operand == 'FAIL' else 'FAIL'
+                            symbol_table['IT']['value_type'] = 'TROOF'
 
                         # Print the reduction of "NOT"
                         # print(f"Reduced 'NOT' expression: {reduced_expression}")
@@ -371,11 +422,58 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                 operand2 = stack[-1][0]
                 reduced_expression = f"{operation} {operand1} AN {operand2}"
 
+                # print()
+                # print("stack: ", stack)
+                # print()
+                # print("operation: ", operation)
+                # print("operand1: ", operand1)
+                # print("operand2: ", operand2)
+                # print()
                 # Capture the indices of the reduced tokens
                 reduced_index = (stack[-4][2], stack[-1][2])  # Ensure this is a tuple with start and end indices
 
+                if operand1 == 'WIN':
+                    operand1 = True
+                else:
+                    operand1 = False
+
+                if operand2 == 'WIN':
+                    operand2 = True
+                else:
+                    operand2 = False
+                    
+                # print()
+                # print("operand1: ", operand1)
+                # print("operand2: ", operand2)
+                # print()
+
+                if operation == 'BOTH OF':
+                    result = operand1 and operand2
+                elif operation == 'EITHER OF':
+                    result = operand1 or operand2
+                elif operation == 'WON OF':
+                    result = operand1 ^ operand2
+                else:
+                    print(f"SEMANTIC ERROR: Invalid operation '{operation}'.")
+                    local_flag = False
+                    return local_flag
+
+                # print("result: ", result)
+
+                # Update the value of 'IT' in the symbol table
+                if 'IT' not in symbol_table:
+                    symbol_table['IT'] = {
+                        'type': 'IDENTIFIER',
+                        'value': 'WIN' if result else 'FAIL',
+                        'value_type': 'TROOF',
+                        'reference_environment': 'GLOBAL'
+                    }
+                else:
+                    symbol_table['IT']['value'] = 'WIN' if result else 'FAIL'
+                    symbol_table['IT']['value_type'] = 'TROOF'
+
                 # Replace the reduced portion of the stack with the new expression
-                stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
+                stack = stack[:-4] + [('WIN' if result else 'FAIL', "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
                 # Now, let's work with the reduced tokens for further validation
                 reduced_tokens = tokens[reduced_index[0]:reduced_index[1] + 1]  # Correctly slice the tokens list
@@ -388,10 +486,25 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                             # Perform the reduction of "NOT operand"
                             # print("\nNOT found after reduction\n")
                             operand = stack[-1][0]
+                            # print("operand: ", operand)
                             reduced_expression = f"NOT {operand}"
                             reduced_index = (stack[-2][2], stack[-1][2][1])  # Use the indices of the "NOT" and the operand
                             stack = stack[:-2]  # Remove the "NOT" and the operand
-                            stack.append((reduced_expression, "operand", reduced_index))  # Add the reduced expression
+                            # print("stack: ", stack)
+                            stack.append(('WIN' if operand == 'FAIL' else 'FAIL', "operand", reduced_index))  # Add the reduced expression
+                            # print("stack: ", stack)
+
+                            # Update the value of 'IT' in the symbol table
+                            if 'IT' not in symbol_table:
+                                symbol_table['IT'] = {
+                                    'type': 'IDENTIFIER',
+                                    'value': 'WIN' if operand == 'FAIL' else 'FAIL',
+                                    'value_type': 'TROOF',
+                                    'reference_environment': 'GLOBAL'
+                                }
+                            else:
+                                symbol_table['IT']['value'] = 'WIN' if operand == 'FAIL' else 'FAIL'
+                                symbol_table['IT']['value_type'] = 'TROOF'
 
                             # Print the reduction of "NOT"
                             # print(f"Reduced 'NOT' expression: {reduced_expression}")
@@ -421,8 +534,42 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                     # Capture the indices of the reduced tokens
                     reduced_index = (stack[-4][2], stack[-1][2][1])  # Ensure this is a tuple with start and end indices
                     # print("reduced_index: ", reduced_index)
+
+                    if operand1 == 'WIN':
+                        operand1 = True
+                    else:
+                        operand1 = False
+
+                    if operand2 == 'WIN':
+                        operand2 = True
+                    else:
+                        operand2 = False
+                        
+                    if operation == 'BOTH OF':
+                        result = operand1 and operand2
+                    elif operation == 'EITHER OF':
+                        result = operand1 or operand2
+                    elif operation == 'WON OF':
+                        result = operand1 ^ operand2
+                    else:
+                        print(f"SEMANTIC ERROR: Invalid operation '{operation}'.")
+                        local_flag = False
+                        return local_flag
+
+                    # Update the value of 'IT' in the symbol table
+                    if 'IT' not in symbol_table:
+                        symbol_table['IT'] = {
+                            'type': 'IDENTIFIER',
+                            'value': 'WIN' if result else 'FAIL',
+                            'value_type': 'TROOF',
+                            'reference_environment': 'GLOBAL'
+                        }
+                    else:
+                        symbol_table['IT']['value'] = 'WIN' if result else 'FAIL'
+                        symbol_table['IT']['value_type'] = 'TROOF'
+
                     # Replace the reduced portion of the stack with the new expression
-                    stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
+                    stack = stack[:-4] + [('WIN' if result else 'FAIL', "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
                     # Now, let's work with the reduced tokens for further validation
                     reduced_tokens = tokens[reduced_index[0]:reduced_index[1] + 1]  # Correctly slice the tokens list
@@ -447,7 +594,41 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
 
                 # Replace the reduced portion of the stack with the reduced expression
                 reduced_index = (stack[-3][2], stack[-1][2])
-                stack = stack[:-3] + [(reduced_expression, "operand", reduced_index)]
+
+                if operand1 == 'WIN':
+                    operand1 = True
+                else:
+                    operand1 = False
+
+                if operand2 == 'WIN':
+                    operand2 = True
+                else:
+                    operand2 = False
+                    
+                if operation == 'BOTH OF':
+                    result = operand1 and operand2
+                elif operation == 'EITHER OF':
+                    result = operand1 or operand2
+                elif operation == 'WON OF':
+                    result = operand1 ^ operand2
+                else:
+                    print(f"SEMANTIC ERROR: Invalid operation '{operation}'.")
+                    local_flag = False
+                    return local_flag
+
+                # Update the value of 'IT' in the symbol table
+                if 'IT' not in symbol_table:
+                    symbol_table['IT'] = {
+                        'type': 'IDENTIFIER',
+                        'value': 'WIN' if result else 'FAIL',
+                        'value_type': 'TROOF',
+                        'reference_environment': 'GLOBAL'
+                    }
+                else:
+                    symbol_table['IT']['value'] = 'WIN' if result else 'FAIL'
+                    symbol_table['IT']['value_type'] = 'TROOF'
+
+                stack = stack[:-3] + [('WIN' if result else 'FAIL', "operand", reduced_index)]
 
                 # No need to validate since it's just the reduction of two operands
                 # print(f"After reduction, stack: {stack}")
@@ -1211,9 +1392,14 @@ def recast_checker(tokens):
 
     return "Error: Invalid recast statement"
 
-# relational
+# boolean
 tokens = [
-        ['BOTH SAEM', 'KEYWORD'], ['x', 'IDENTIFIER'], ['AN', 'KEYWORD'], ['BIGGR OF', 'KEYWORD'], ['x', 'IDENTIFIER'], ['AN', 'KEYWORD'], ['y', 'IDENTIFIER']
+        ['NOT', 'KEYWORD'], ['BOTH OF', 'KEYWORD'], 
+        # ['BOTH OF', 'KEYWORD'], 
+        
+        ['BOTH OF', 'KEYWORD'], ['x', 'IDENTIFIER'], ['AN', 'KEYWORD'], ['y', 'IDENTIFIER'],
+        
+        ['AN', 'KEYWORD'], ['y', 'IDENTIFIER']
     ]
 # arithmetic
 # tokens = [['SUM OF', 'KEYWORD'], 
@@ -1229,8 +1415,8 @@ tokens = [
 
 symbol_table = {
     'IT': {'type': 'IDENTIFIER', 'value': '0', 'value_type': 'NOOB', 'reference_environment': 'GLOBAL'},
-    'x': {'type': 'IDENTIFIER', 'value': '10', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
-    'y': {'type': 'IDENTIFIER', 'value': '1', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
+    'x': {'type': 'IDENTIFIER', 'value': '0', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
+    'y': {'type': 'IDENTIFIER', 'value': '5', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
 }
 
 expression_checker(tokens, symbol_table, False)
