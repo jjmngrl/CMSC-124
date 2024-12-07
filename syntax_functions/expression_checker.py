@@ -1,6 +1,8 @@
-# from syntax_functions.data_type_checker import data_type_checker
-from data_type_checker import data_type_checker
-import re
+from syntax_functions.data_type_checker import data_type_checker
+from syntax_functions  import semantics_functions
+from syntax_functions import assignment_checker
+from syntax_functions.explicit_typecast_checker import to_different_types
+
 
 """ 
 Function to check if a token is a valid expression
@@ -63,10 +65,10 @@ def expression_checker(tokens, symbol_table, flag=False):
         ) else operator_functions['comparison'](comparison_operators, tokens, symbol_table, expression_operators, flag)
     elif tokens[0][0] in explicit_operator and tokens[0][1] == "KEYWORD":
         return operator_functions['explicit'](tokens)
-    elif len(tokens)>1 and tokens[1][0] in recast_operator and tokens[1][1] == "KEYWORD":
+    elif len(tokens)>1 and (tokens[1][0] in recast_operator or tokens[2][0] in explicit_operator) and tokens[1][1] == "KEYWORD" and tokens[1][0]=="R":
         return operator_functions['recast'](tokens)
     else:
-        print(f"Not an expression")  # If the token does not match any known operator
+        print(f"Not an expression")  #If the token does not match any known operator
         return False  # Invalid expression
 
 def arithmetic_operation(operators, tokens, symbol_table):
@@ -1341,21 +1343,10 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
     return local_flag
 
 def explicit_typecast_checker(tokens):
-    """
-    Validates explicit typecasting in LOLCODE based on the specified grammar:
-    - MAEK varident A <data_type>
-    - MAEK varident <data_type>
-    
-    Arguments:
-        tokens: A list of tokens, where each token is a tuple (value, type).
-                Example: [("MAEK", "KEYWORD"), ("x", "IDENTIFIER"), ("A", "KEYWORD"), ("NUMBR", "DATATYPE")]
-    
-    Returns:
-        True if the explicit typecasting is valid, or an error message if invalid.
-    """
-    # print("\nInside explicit_typecast_checker")
-    # print("Tokens to check:", tokens)
-    
+    print("previous symbl table: \n",semantics_functions.symbols)
+    print("\nInside explicit_typecast_checker")
+    print("Tokens to check:", tokens)
+    syntax_flag = False
     if len(tokens) < 3:
         return "Error: Incomplete typecasting statement"
 
@@ -1364,8 +1355,15 @@ def explicit_typecast_checker(tokens):
 
     # Check the variable identifier
     if tokens[1][1] != "IDENTIFIER":
-        return f"Error: Expected variable identifier after 'MAEK', found {tokens[1][0]}"
+        return f"semantics Error: Expected variable identifier after 'MAEK', found {tokens[1][0]}"
 
+    token_name = tokens[1][0]
+    token_type = tokens[1][1]
+    #check if variable is declared
+    result = semantics_functions.symbol_exists(token_name)
+    if not result:
+        raise Exception(f"Semantic Error in line: Variable {token_name} is not declared")
+            
     # Case 1: MAEK varident A <data_type>
     if len(tokens) == 4:
         if tokens[2][0] != "A" or tokens[2][1] != "KEYWORD":
@@ -1373,18 +1371,32 @@ def explicit_typecast_checker(tokens):
         if not data_type_checker(tokens[3]):
             return f"Error: Expected data type after 'A', found {tokens[3][0]}"
         print("Valid explicit typecasting (MAEK varident A <data_type>)")
-        return True
+        data_type = tokens[3]
+        syntax_flag =  True
 
     # Case 2: MAEK varident <data_type>
     elif len(tokens) == 3:
         if not data_type_checker(tokens[2]):
             return f"Error: Expected data type after variable identifier, found {tokens[2][0]}"
         print("Valid explicit typecasting (MAEK varident <data_type>)")
+        data_type = tokens[2][0]
+
+        syntax_flag =  True
+
+
+    if syntax_flag == True:
+        print("Token type: ", data_type[0] )
+        to_different_types(data_type[0], 5, token_name, token_type)
+
+
         return True
 
-    return "Error: Invalid typecasting statement"
+    else:
+        return "Error: Invalid typecasting statement"
+
 
 def recast_checker(tokens):
+    print("REcasting")
     """
     Validates recast statements in LOLCODE based on the specified grammar:
     - varident IS NOW A <data_type>
@@ -1406,11 +1418,29 @@ def recast_checker(tokens):
     # Check the variable identifier
     if tokens[0][1] != "IDENTIFIER":
         return f"Error: Expected variable identifier at the start, found {tokens[0][0]}"
+    
+    #check if variable is declared
+    var_declared = semantics_functions.symbol_exists(tokens[0][0])
+    if not var_declared:
+        raise Exception(f"Semantic Error in line: Variable {tokens[0][0]} is not declared")
+    
+    token_to_change = tokens[0][0]
+    type_of_tok_to_change = tokens[0][1]
 
     # Case 1: varident IS NOW A <data_type>
     if len(tokens) >= 3 and tokens[1][0] == "IS NOW A" and tokens[1][1] == "KEYWORD":
-        if data_type_checker(tokens[2]):
+        
+        data_type_to_check = tokens[2] 
+        if data_type_checker.data_type_checker(data_type_to_check):
             print("Valid recast (varident IS NOW A <data_type>)")
+
+            token_name = tokens[2][0]
+            token_type = tokens[2][1]
+            #Semantic check 
+            print("semantic evaluation\n")
+            explicit_typecast_checker.to_different_types(token_name, token_type, line_num, token_to_change, type_of_tok_to_change)
+
+
             return True
         else:
             return f"Error: Expected data type after 'IS NOW A', found {tokens[2][0]}"
@@ -1418,10 +1448,32 @@ def recast_checker(tokens):
     # Case 2: varident R <explicit_typecast>
     elif len(tokens) >= 2 and tokens[1][0] == "R" and tokens[1][1] == "KEYWORD":
         explicit_typecast_tokens = tokens[2:]  # Extract the tokens after 'R'
-        # print(explicit_typecast_tokens)
+        line_num = 2
+        retain_token_val = semantics_functions.get_symbol(explicit_typecast_tokens[1][0])["value"] 
+        retain_token_type = semantics_functions.get_symbol(explicit_typecast_tokens[1][0])["value_type"]
+        var_name_in_explicit = explicit_typecast_tokens[1][0]
+        var_type_in_explicit = explicit_typecast_tokens[1][1]
+        print(explicit_typecast_tokens)
         result = explicit_typecast_checker(explicit_typecast_tokens)
         if result == True:
             print("Valid recast (varident R <explicit_typecast>)")
+
+            #Semantics check
+            explicit_typecast_checker(explicit_typecast_tokens)
+            print(explicit_typecast_tokens[1][0])
+            to_assign = semantics_functions.get_symbol(var_name_in_explicit)["value"]
+            to_assign_type = semantics_functions.get_symbol(var_name_in_explicit)["value_type"]
+            
+            #Assign explicit typecast to variable
+            print(f"assigning explicit to variable")
+            assignment_checker.assignment_semantics(line_num, [[token_to_change,type_of_tok_to_change],['R', "KEYWORD"], [to_assign, to_assign_type]])
+
+            #return the original value and type of the variable in the explicit typecast part
+            assignment_checker.assignment_semantics(line_num, [[var_name_in_explicit,var_type_in_explicit],['R', "KEYWORD"], [retain_token_val, retain_token_type]])
+            
+            explicit_typecast_checker( [["MAEK", "KEYWORD"],[var_name_in_explicit, var_type_in_explicit],["A", "KEYWORD"], [retain_token_type, "KEYWORD"]])
+            
+            print("\nAFTER RECAST\n",semantics_functions.symbols)
             return True
         else:
             return result
