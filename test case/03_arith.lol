@@ -1,12 +1,9 @@
 HAI
     WAZZUP
         BTW variable dec
-        I HAS A x
-        I HAS A y
+        I HAS A x ITZ 2
+        I HAS A y ITZ 5
     BUHBYE
-    
-    GIMMEH x
-    GIMMEH y
 
     VISIBLE x + "+" + y + " = " + SUM OF x AN y
     VISIBLE x + "-" + y + " = " + DIFF OF x AN y
