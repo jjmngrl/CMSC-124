@@ -292,7 +292,7 @@ def arithmetic_operation(operators, tokens, symbol_table):
     return local_flag
 
 
-def boolean_operation(operators, tokens, expression_operators, nested_bool_flag, an_count_container):
+def boolean_operation(operators, tokens, expression_operators, nested_bool_flag, an_count_container, bool_operator = None):
     stack = []
     local_flag = True
     index = 0  # Start processing tokens from the first index
@@ -361,6 +361,8 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
             # Exception (f"ERROR: Invalid token '{token}' in boolean operation.")
             print(f"ERROR: Invalid token '{token}' in boolean operation.")
             local_flag = False
+
+        print("stack: ", stack)
 
         # Check if there's a "NOT" at the top of the stack before an operand
         if len(stack)>1 and stack[-2][0] == "NOT" and stack[-2][1] == "operation" and (stack[-1][1] == "operand"):
@@ -582,11 +584,12 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                 continue  # Skip the remaining processing of the current token
 
         # If no operation, check for the pattern operand AN operand (special case for nested)
-        if nested_bool_flag and len(stack) == 3:
+        if nested_bool_flag and len(stack) == 3 and bool_operator != None:
             if (stack[-3][1] == "operand" and
                 stack[-2][1] == "keyword" and
                 stack[-1][1] == "operand"):
-                # print("Nested pattern found: operand AN operand.")
+                print("Nested pattern found: operand AN operand.")
+                print("stack: ", stack)
                 # Reduce the expression to a single operand
                 operand1 = stack[-3][0]
                 operand2 = stack[-1][0]
@@ -605,12 +608,10 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                 else:
                     operand2 = False
                     
-                if operation == 'BOTH OF':
+                if bool_operator == 'ALL OF':
                     result = operand1 and operand2
-                elif operation == 'EITHER OF':
+                elif bool_operator == 'ANY OF':
                     result = operand1 or operand2
-                elif operation == 'WON OF':
-                    result = operand1 ^ operand2
                 else:
                     print(f"SEMANTIC ERROR: Invalid operation '{operation}'.")
                     local_flag = False
@@ -631,7 +632,7 @@ def boolean_operation(operators, tokens, expression_operators, nested_bool_flag,
                 stack = stack[:-3] + [('WIN' if result else 'FAIL', "operand", reduced_index)]
 
                 # No need to validate since it's just the reduction of two operands
-                # print(f"After reduction, stack: {stack}")
+                print(f"After reduction, stack: {stack}")
                 index += 1  # Move index to next token after reduction
                 continue
 
@@ -683,22 +684,31 @@ def nested_boolean_operation(operators, tokens, expression_operators):
 
     # Check if the first token is a valid operator and the last token is 'MKAY'
     if tokens[0][0] not in operators:
-        # print("ERROR: Nested boolean operation must start with a valid operator.")
+        print("ERROR: Nested boolean operation must start with a valid operator.")
         return False
     if tokens[-1] != ['MKAY', 'KEYWORD']:
-        # print("ERROR: Nested boolean operation must end with 'MKAY'.")
+        print("ERROR: Nested boolean operation must end with 'MKAY'.")
         return False
 
+    nested_operator = tokens[0][0]
+    nested_operator = str(nested_operator)
+    print("nested_operator: ", nested_operator)
     # Slice the tokens to exclude the first (operator) and last ('MKAY') token
     inner_tokens = tokens[1:-1]
 
     # Process the tokens by calling boolean_operation iteratively
     remaining_tokens = inner_tokens
     while remaining_tokens:  # Continue until no remaining tokens
+        print()
+        print("remaining_tokens: ", remaining_tokens)
+        print()
         # Pass the container to the boolean_operation function
         reduced_expression, remaining_tokens, local_flag = boolean_operation(
-            operators, remaining_tokens, expression_operators, nested_bool_flag=True, an_count_container=an_count_container
+            operators, remaining_tokens, expression_operators, nested_bool_flag=True, an_count_container=an_count_container, bool_operator=nested_operator
         )
+        print("reduced_expression: ", reduced_expression)
+        print("remaining_tokens: ", remaining_tokens)
+        print("local_flag: ", local_flag)
 
         if not local_flag:
             print("ERROR: Invalid boolean expression in the current iteration.")
@@ -1394,13 +1404,21 @@ def recast_checker(tokens):
 
 # boolean
 tokens = [
-        ['NOT', 'KEYWORD'], ['BOTH OF', 'KEYWORD'], 
-        # ['BOTH OF', 'KEYWORD'], 
+        ['ANY OF', 'KEYWORD'], 
+
+        ['BOTH OF', 'KEYWORD'], 
         
         ['BOTH OF', 'KEYWORD'], ['x', 'IDENTIFIER'], ['AN', 'KEYWORD'], ['y', 'IDENTIFIER'],
         
-        ['AN', 'KEYWORD'], ['y', 'IDENTIFIER']
+        ['AN', 'KEYWORD'], ['y', 'IDENTIFIER'],
+
+        ['AN', 'KEYWORD'], 
+        
+        ['y', 'IDENTIFIER'],
+
+        ['MKAY', 'KEYWORD'], 
     ]
+
 # arithmetic
 # tokens = [['SUM OF', 'KEYWORD'], 
 #           ['PRODUKT OF', 'KEYWORD'], 
