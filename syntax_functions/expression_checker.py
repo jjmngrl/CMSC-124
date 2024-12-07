@@ -645,14 +645,14 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
     index = 0  # Start processing tokens from the first index
     numbar_flag = 0
     numbr_flag = 0
-    print()
-    print("you are now in comparison")
-    print("tokens: ", tokens)
+    # print()
+    # print("you are now in comparison")
+    # print("tokens: ", tokens)
 
     # Iteratively process the stack for reductions
     while index < len(tokens):
         token_info = tokens[index]
-        print("token_info: ", token_info)
+        # print("token_info: ", token_info)
         if len(token_info) == 2:
             token, token_type = token_info  # Unpack the token and its type
         elif len(token_info) == 3 and relational_flag == True:
@@ -710,7 +710,7 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
             break
 
         # Check for the pattern (operation operand AN operand)
-        print("Stack: ", stack)
+        # print("Stack: ", stack)
         if len(stack) >= 4:
             # Look for a valid reduction pattern: operation operand AN operand
             if (stack[-4][1] == "operation" and
@@ -758,8 +758,8 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
                     symbol_table['IT']['value_type'] = 'TROOF' 
 
                 # Replace the reduced portion of the stack with the reduced expression
-                print("stack: ", stack[-1][2])
-                print("stack: ", stack[-1][2][1])
+                # print("stack: ", stack[-1][2])
+                # print("stack: ", stack[-1][2][1])
                 if len(stack[-1][2])>1:
                     reduced_index = (stack[-4][2], stack[-1][2][1])
                 else:
@@ -770,7 +770,7 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
                 # print("symbol_table: ", symbol_table)
                 # Now, let's work with the reduced tokens for further validation
                 reduced_tokens = tokens[reduced_index[0]:reduced_index[1] + 1]  # Slice the original tokens list
-                print("reduced_tokens: ", reduced_tokens)
+                # print("reduced_tokens: ", reduced_tokens)
                 # Skip validation if the first token is part of the reduced tokens
                 if tokens[0] in reduced_tokens:
                     # print("Skipping validation since the first token is part of the reduced tokens.")
@@ -797,7 +797,7 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
         # Increment the index to move to the next token
         index += 1
 
-    print("Stack: ", stack)
+    # print("Stack: ", stack)
     # After all reductions, check for the final step
     if len(stack) == 4:
         if (stack[-4][1] == "operation" and
@@ -863,11 +863,17 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
 
 def relational_operation(relational_operators, comparison_operators, tokens, symbol_table, expression_operators):
     # Split tokens into two parts: comparison and relational
-    print("You're in relational")
+    # print("You're in relational")
+    # print()
+    # print("tokens: ", tokens)
+    # print()
+    # print("symbol_table: ", symbol_table)
+    # print()
     first_part = []
     second_part = []
     found_relational = False
     fPartOperand = None
+    variables = []
 
     # Divide tokens into first_part and second_part
     for token in tokens:
@@ -884,14 +890,14 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
 
     # Debugging output for token splitting
     if first_part:
-        print(f"First Part (Comparison): {first_part}")
+        # print(f"First Part (Comparison): {first_part}")
         fPartOperand = first_part[0][0]
-        print(f"Operand of first part: {first_part[0][0]}")
+        # print(f"Operand of first part: {first_part[0][0]}")
     # else:
         # return False
 
-    if first_part:
-        print(f"Second Part (Relational): {second_part}")
+    # if first_part:
+        # print(f"Second Part (Relational): {second_part}")
     # else:
         # return False
 
@@ -954,6 +960,9 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
                 break
             else:
                 stack.append((token, "operand", index))  # Add operand to stack
+                # print()
+                # print("variables: ", variables)
+                # print()
         
         else:
             # Exception(f"ERROR: Invalid token '{token}' in relational processing.")
@@ -972,13 +981,17 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
                 # Perform the reduction (operation operand AN operand)
                 operation = stack[-4][0]
                 operand1 = stack[-3][0]
+                token1 = operand1
                 operand2 = stack[-1][0]
+                token2 = operand2
                 reduced_expression = f"{operation} {operand1} AN {operand2}"
 
                 if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
                     operand1_value = stack[-3][2]
+                    token1 = operand1
                 else:
                     operand1_value = operand1
+                    token1 = operand1
 
                 if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
                     operand2_value = stack[-1][2]
@@ -987,18 +1000,30 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
 
                 if operation == 'BIGGR OF':
                     # If operand1_value is greater to operand2_value, result is 'WIN', otherwise 'FAIL'
-                    result = 'WIN' if operand1_value == operand2_value else 'FAIL'
+                    result = token1 if operand1_value > operand2_value else token2
                 elif operation == 'SMALLR OF':
                     # If operand1_value is less to operand2_value, result is 'WIN', otherwise 'FAIL'
-                    result = 'WIN' if operand1_value != operand2_value else 'FAIL'
+                    result = token1 if operand1_value < operand2_value else token2
                 else:
                     print(f"ERROR: Invalid operation '{operation}'.")
                     local_flag = False
                     break
 
+                # Update the value of 'IT' in the symbol table
+                if 'IT' not in symbol_table:
+                    symbol_table['IT'] = {
+                        'type': 'IDENTIFIER',
+                        'value': result,
+                        'value_type': 'TROOF',
+                        'reference_environment': 'GLOBAL'
+                    }
+                else:
+                    symbol_table['IT']['value'] = result
+                    symbol_table['IT']['value_type'] = 'TROOF' 
+
                 # Replace the reduced portion of the stack with the reduced expression
                 reduced_index = (stack[-4][2], stack[-1][2])  # Capture the indices of the reduced tokens
-                stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
+                stack = stack[:-4] + [(result, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
                 # Print for debugging
                 # print(f"After reduction, stack: {stack}")
@@ -1015,21 +1040,68 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
     # After all reductions, check for the final step
     if len(stack) == 4:
         if (stack[-4][1] == "operation" and
-            stack[-3][1] == "operand" and
-            stack[-2][1] == "keyword" and
-            stack[-1][1] == "operand"):
-            
+                stack[-3][1] == "operand" and
+                stack[-2][1] == "keyword" and
+                stack[-1][1] == "operand"):
+
+            # Perform the reduction (operation operand AN operand)
             operation = stack[-4][0]
             operand1 = stack[-3][0]
+            token1 = operand1
             operand2 = stack[-1][0]
+            token2 = operand2
             reduced_expression = f"{operation} {operand1} AN {operand2}"
-            
-            # Final reduction
-            stack = stack[:-4] + [(reduced_expression, "operand")]
+
+            if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
+                operand1_value = stack[-3][2]
+                token1 = operand1
+            else:
+                operand1_value = operand1
+                token1 = operand1
+
+            if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
+                operand2_value = stack[-1][2]
+            else:
+                operand2_value = operand2
+
+            if operation == 'BIGGR OF':
+                # If operand1_value is greater to operand2_value, result is 'WIN', otherwise 'FAIL'
+                result = token1 if operand1_value > operand2_value else token2
+            elif operation == 'SMALLR OF':
+                # If operand1_value is less to operand2_value, result is 'WIN', otherwise 'FAIL'
+                result = token1 if operand1_value < operand2_value else token2
+            else:
+                print(f"ERROR: Invalid operation '{operation}'.")
+                local_flag = False
+                # break
+
+            # Update the value of 'IT' in the symbol table
+            if 'IT' not in symbol_table:
+                symbol_table['IT'] = {
+                    'type': 'IDENTIFIER',
+                    'value': result,
+                    'value_type': 'TROOF',
+                    'reference_environment': 'GLOBAL'
+                }
+            else:
+                symbol_table['IT']['value'] = result
+                symbol_table['IT']['value_type'] = 'TROOF' 
+
+            # Replace the reduced portion of the stack with the reduced expression
+            reduced_index = (stack[-4][2], stack[-1][2])  # Capture the indices of the reduced tokens
+            stack = stack[:-4] + [(result, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
+
+            # Print for debugging
+            # print(f"After reduction, stack: {stack}")
+            # print(f"Reduced tokens for validation: {second_part[reduced_index[0]:reduced_index[1] + 1]}")
+            # print(f"Reduced index: {reduced_index}")
+
+            # Move the index to the token after the reduced portion
+            index = reduced_index[1] + 1
 
     # Final state of the stack
-    print(f"Final stack: {stack}")
-    print(f"first_part + stack: {first_part + stack}")
+    # print(f"Final stack: {stack}")
+    # print(f"first_part + stack: {first_part + stack}")
     
     # Check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
