@@ -1,6 +1,8 @@
 from syntax_functions.identifier_checker import identifier_checker
 from syntax_functions.expression_checker import expression_checker
 from syntax_functions.flow_control_body_checker import flow_control_body_checker
+from syntax_functions import semantics_functions
+from syntax_functions import explicit_typecast_checker
 
 """
 Use this checker when a statement or line of code has the keyword 'IM IN YR'
@@ -16,6 +18,10 @@ def loop_checker(token):
     loop_identifier = None
     loop_body_tokens = {}
     collecting_loop_body = False
+    increment = False #flag to determine if operation is increment or decrement
+    is_till_loop = False #flag to determine if loop is of type till or wile. if false then it is a wile loop
+    loop_condtion = None
+    
     print("IN LOOP CHECKERR")
 
     for line_num, tokens_in_line in token.items():
@@ -31,15 +37,21 @@ def loop_checker(token):
             elif current_state == "EXPECT_LOOPIDENT":
                 if token_type == "IDENTIFIER":
                     loop_identifier = token  # Capture the loop identifier
+                    
+                    
                     current_state = "EXPECT_OPERATION"
                 else:
                     return f"Error: Expected an identifier after 'IM IN YR' at line {line_num}"
 
             elif current_state == "EXPECT_OPERATION":
+
                 if token in ["UPPIN", "NERFIN"]:
+                    #Determine the operation if UPPIN or NERFIN
+                    if token == "UPPIN":
+                        increment = True
                     current_state = "EXPECT_YR"
                 else:
-                    return f"Error: Expected 'UPPIN' or 'NERFIN' at line {line_num}"
+                    return f"Error at line {line_num}: Expected 'UPPIN' or 'NERFIN' but got {token}"
 
             elif current_state == "EXPECT_YR":
                 if token == "YR":
@@ -49,21 +61,51 @@ def loop_checker(token):
 
             elif current_state == "EXPECT_VARIDENT":
                 if token_type == "IDENTIFIER":
+                    print("Variable:",token )
+                    #Check if variable is declared
+                    result = semantics_functions.symbol_exists(token)
+                    if not result:
+                        raise Exception(f"Semantic Error in line {line_num}: Variable {token} is not declared")
+                    
+                    #type cast the variable if its not numbar or nmbr
+                    #get type of the variable
+                    type_of_var = semantics_functions.get_symbol(token)['value_type']
+                    print("Type of var: ", type_of_var)
+
+                    #Type cast the variable to NUMBR or NUMBAR
+                    explicit_typecast_checker.to_nmbr_numbar(line_num,[token,token_type])
+                    print(semantics_functions.symbols)
                     current_state = "EXPECT_TIL_OR_WILE"
                 else:
-                    return f"Error: Expected an identifier after 'YR' at line {line_num}"
+                    return f"syntax error: Expected an identifier after 'YR' at line {line_num}"
 
             elif current_state == "EXPECT_TIL_OR_WILE":
                 if token in ["TIL", "WILE"]:
+                    #determine type of loop:
+                    if token == "TIL":
+                        is_till_loop = True #loop is a til loop
+
+
                     #Get remaining tokens as the expression
                     expression_tokens = tokens_in_line[i + 1:]
                     if not expression_checker(expression_tokens, False):
-                        return f"ERROR at line {line_num}: Invalit expression after '{token}'"
+                        return f"syntax error at line {line_num}: Invalid expression after '{token}'"
+                    
+                    #loop condition = expression_tokens, call the expression evaluator here
+
+                    #evaluation of loop_condition
+                    #result of expression should be stored in IT
+
+                    #if is_still_loop == True:
+                        #if win, break
+                    #if is_still_loop == False
+                        #if fail, break
+
                     current_state = "COLLECT_LOOP_BODY"    
                     collecting_loop_body = True
                     break #stop further token processing on this line
                 else:
-                    return f"Error: Expected 'TIL' or 'WILE' at line {line_num}"
+                    return f"Syntax Error: Expected 'TIL' or 'WILE' at line {line_num}"
 
 
             elif current_state == "COLLECT_LOOP_BODY":
@@ -71,14 +113,41 @@ def loop_checker(token):
                     #Check if Loop body is valid
                     print("LOOP BODY: ",loop_body_tokens)
 
-                    #Validate the body
+                    #Validate the body (syntax)
                     result = flow_control_body_checker(loop_body_tokens)
+                    
+                    
                     if result != True:
                         return result
                     print("Valid loop body")
+
+                    #check semantics
+                    # if is_till_loop == True:
+                        #till loop
+                        #while value of IT is FAIL, repeteadly call the evaluate flow control body
+                            #check if increment
+
+                            #if true,
+                                #evaluate body - in evaluating chck ung GTFO then dpt irereturn niya ay break. so dapat may check na 
+                                    #if ==break, dpt mag stop na rin ang loop checker   
+                                #increment on variable
+
+                                #check if IT is still false (fail)
+
+                            #if decrement
+                                #evaluate body
+                                #decrement
+
+                                #check if condition is win (true)
+                    # else: #wile loop
+
                     current_state = "EXPECT_LOOPIDENT_END"
                     loop_body_tokens = {} #reset for the next loop body
+                
+                    #if a break statement is present
+
                 else:
+
                     #Collect tokens for loop body
                     if line_num not in loop_body_tokens:
                         loop_body_tokens[line_num] = []

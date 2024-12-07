@@ -52,6 +52,10 @@ def update_symbol(symbol_name, **updates):
 #     "quo": {"type": "identifier", "value": "QUOSHUNT OF", "value_type": "KEYWORD", "reference_environment": "GLOBAL"}
 # }
 
+# symbols = {
+#     "IT": {"type": "identifier", "value": 0, "value_type": "NOOB", "reference_environment": "main"}
+# }
+
 symbols = {
-    "IT": {"type": "identifier", "value": 0, "value_type": "NOOB", "reference_environment": "main"}
+    "IT": {"type": "identifier", "value": None, "value_type": "NOOB", "reference_environment": "main"},
 }
