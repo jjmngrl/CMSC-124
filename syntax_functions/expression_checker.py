@@ -965,14 +965,14 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
     index = 0  # Start processing tokens from the first index
     numbar_flag = 0
     numbr_flag = 0
-    # print()
-    # print("you are now in comparison")
-    # print("tokens: ", tokens)
+    print()
+    print("you are now in comparison")
+    print("tokens: ", tokens)
 
     # Iteratively process the stack for reductions
     while index < len(tokens):
         token_info = tokens[index]
-        # print("token_info: ", token_info)
+        print("token_info: ", token_info)
         if len(token_info) == 2:
             token, token_type = token_info  # Unpack the token and its type
         elif len(token_info) == 3 and relational_flag == True:
@@ -1078,9 +1078,8 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
                     symbol_table['IT']['value_type'] = 'TROOF' 
 
                 # Replace the reduced portion of the stack with the reduced expression
-                # print("stack: ", stack[-1][2])
-                # print("stack: ", stack[-1][2][1])
-                if len(stack[-1][2])>1:
+                print("Full stack: ", stack)
+                if isinstance(stack[-1][2], tuple):
                     reduced_index = (stack[-4][2], stack[-1][2][1])
                 else:
                     reduced_index = (stack[-4][2], stack[-1][2])  # Capture the indices of the reduced tokens
@@ -1581,27 +1580,21 @@ def recast_checker(tokens):
 
     return "Error: Invalid recast statement"
 
-# concatenation
-tokens = [
-    ['SMOOSH', 'KEYWORD'],  # Concatenation operator
+# # concatenation
+# tokens = [
+#     ['BOTH SAEM', 'KEYWORD'],
+#     ['num', 'IDENTIFIER'],
+#     ['AN', 'KEYWORD'],     
+#     ['0', 'NUMBR']
+# ]
 
-    ['YARN1', 'IDENTIFIER'],      # Operand 1
-
-    ['AN', 'KEYWORD'],      # 'AN' keyword
-
-    ['BOTH OF', 'KEYWORD'],
-    ['x', 'IDENTIFIER'],
-    ['AN', 'KEYWORD'],      # should be WIN
-    ['y', 'IDENTIFIER']
-]
-
-symbol_table = {
-    'IT': {'type': 'IDENTIFIER', 'value': '0', 'value_type': 'NOOB', 'reference_environment': 'GLOBAL'},
-    'YARN1': {'type': 'IDENTIFIER', 'value': 'Hello', 'value_type': 'YARN', 'reference_environment': 'GLOBAL'},
-    'YARN2': {'type': 'IDENTIFIER', 'value': 'World', 'value_type': 'YARN', 'reference_environment': 'GLOBAL'},
-    'x': {'type': 'IDENTIFIER', 'value': 'WIN', 'value_type': 'TROOF', 'reference_environment': 'GLOBAL'},
-    'y': {'type': 'IDENTIFIER', 'value': 'WIN', 'value_type': 'TROOF', 'reference_environment': 'GLOBAL'},
-}
+# symbol_table = {
+#     'IT': {'type': 'IDENTIFIER', 'value': '0', 'value_type': 'NOOB', 'reference_environment': 'GLOBAL'},
+#     # 'YARN1': {'type': 'IDENTIFIER', 'value': 'Hello', 'value_type': 'YARN', 'reference_environment': 'GLOBAL'},
+#     # 'YARN2': {'type': 'IDENTIFIER', 'value': 'World', 'value_type': 'YARN', 'reference_environment': 'GLOBAL'},
+#     # 'x': {'type': 'IDENTIFIER', 'value': 'WIN', 'value_type': 'TROOF', 'reference_environment': 'GLOBAL'},
+#     'num': {'type': 'IDENTIFIER', 'value': '5', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
+# }
 
 # result = expression_checker(tokens, symbol_table, False)
 
