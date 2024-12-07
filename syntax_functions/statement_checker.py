@@ -94,11 +94,15 @@ def statement_checker(code_block, classified_tokens):
             print(f"start of if-else block at line {current_line}")
             extract_block, next_line = extract_flowcontrol_block.extract_ifelse_block(code_block, current_line)
             print("Extracted block:\n", extract_block)
+            #Syntax analyzer
             if ifelse_checker.ifelse_checker(extract_block):
                 print(f"valid if else block at line {current_line} to line {next_line-1}")
                 statement_flag = True
             else:
                 raise Exception(f"ERROR in line {current_line}:Invalid if-else block.")
+            
+            #semantics
+
             current_line = next_line
 
         #Catch switch
@@ -166,7 +170,7 @@ def statement_checker(code_block, classified_tokens):
             current_line = next_line
 
         #catch expression
-        elif expression_checker.expression_checker(tokens[1:], False) == True:
+        elif expression_checker.expression_checker(tokens, False) == True:
             print("Valid expression")
             current_line += 1
             statement_flag = True

@@ -14,7 +14,7 @@ def data_type_checker(token):
     :return: True if all data types are valid, otherwise an error message.
     """
     # print("\ninside data_type checker")
-    valid_data_types = {"NUMBAR", "YARN", "NMBR", "TROOF", "NOOB"}
+    valid_data_types = {"NUMBAR", "YARN", "NUMBR", "TROOF", "NOOB"}
 
     if token[0] in valid_data_types:
         return True

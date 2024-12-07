@@ -1,7 +1,6 @@
 from syntax_functions.data_type_checker import data_type_checker
 from syntax_functions import explicit_typecast_checker
 from syntax_functions  import semantics_functions
-from syntax_functions import explicit_typecast_checker
 from syntax_functions import assignment_checker
 from syntax_functions.explicit_typecast_checker import to_different_types
 
@@ -692,6 +691,7 @@ def relational_operation(relational_operators, comparison_operators, tokens, exp
         local_flag = False
 
     return local_flag
+
 def explicit_typecast_checker(tokens):
     print("previous symbl table: \n",semantics_functions.symbols)
     print("\nInside explicit_typecast_checker")
