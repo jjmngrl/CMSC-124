@@ -28,6 +28,7 @@ def visible_statement_checker(line_num, tokens):
             # Check if it's a literal
             if literal_checker(visible_part[0]) == True:
                 # result.append("Valid literal")
+                semantics_functions.update_symbol("IT", value=first_value, value_type=first_type )
                 flag = True
             # Check if it's an identifier
             elif identifier_checker(visible_part[0]) == True:
@@ -44,7 +45,7 @@ def visible_statement_checker(line_num, tokens):
             
             # Check if it's a valid expression
             elif  len(visible_part) >= 2:
-                if expression_checker(tokens[1:], False) == True:
+                if expression_checker(tokens[1:], semantics_functions.symbols, False) == True:
                     # result.append("Valid expression")
                     flag = True
                     
@@ -66,4 +67,5 @@ def visible_statement_checker(line_num, tokens):
         return False
 
     # Return the result flag (True if valid, False if invalid)
+    print("updated symbol table after visible: \n",semantics_functions.symbols)
     return flag

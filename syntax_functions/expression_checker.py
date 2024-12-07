@@ -2,7 +2,7 @@ from syntax_functions.data_type_checker import data_type_checker
 from syntax_functions  import semantics_functions
 from syntax_functions import assignment_checker
 from syntax_functions.explicit_typecast_checker import to_different_types
-
+import re
 
 """ 
 Function to check if a token is a valid expression
@@ -775,7 +775,7 @@ def concatenation_operation(operators, tokens, expression_operators, symbol_tabl
             temp_operand.append((val, type, index))
 
             # Add operand to stack
-            stack.append((token, "operand", index))
+            stack.append((val, "operand", index))
         else:
             print(f"ERROR: Invalid token '{token}' in concatenation.")
             local_flag = False
@@ -790,8 +790,18 @@ def concatenation_operation(operators, tokens, expression_operators, symbol_tabl
 
                 # Perform the reduction (operation operand AN operand)
                 operation = stack[-4][0]
-                operand1 = stack[-3][0]
-                operand2 = stack[-1][0]
+                # Check if stack[-3][2] is an integer or a tuple
+                if isinstance(stack[-3][2], tuple):  # If it's a tuple
+                    operand1 = expression_value
+                else:  # Otherwise, treat it as a value from the stack
+                    operand1 = stack[-3][0]
+
+                # Check if stack[-1][2] is an integer or a tuple
+                if isinstance(stack[-1][2], tuple):  # If it's a tuple
+                    operand2 = expression_value
+                else:  # Otherwise, treat it as a value from the stack
+                    operand2 = stack[-1][0]
+
 
                 # Fetch the actual values of the operands
                 val1 = symbol_table[operand1]['value'] if operand1 in symbol_table else operand1
@@ -799,7 +809,7 @@ def concatenation_operation(operators, tokens, expression_operators, symbol_tabl
 
                 # Concatenate the values of the operands (since we're dealing with "SMOOSH" operation)
                 reduced_val = val1 + val2
-                reduced_expression = f"{operation} {operand1} AN {operand2}"  # Store the reduced expression
+                reduced_expression = f"{operand1}{operand2}"  # Store the reduced expression
 
                 # Update the IT value with the concatenated result
                 symbol_table['IT'] = {
@@ -829,6 +839,8 @@ def concatenation_operation(operators, tokens, expression_operators, symbol_tabl
                     break
                 else:
                     index = reduced_index[1] + 1
+
+                    expression_value = symbol_table['IT']['value']
                     continue
 
         # Increment the index to move to the next token
@@ -842,21 +854,45 @@ def concatenation_operation(operators, tokens, expression_operators, symbol_tabl
             stack[-1][1] == "operand"):
 
             operation = stack[-4][0]
-            operand1 = stack[-3][0]
-            operand2 = stack[-1][0]
-            reduced_expression = f"{operation} {operand1} AN {operand2}"
+            # Check if stack[-3][2] is an integer or a tuple
+            if isinstance(stack[-3][2], tuple):  # If it's a tuple
+                operand1 = expression_value
+            else:  # Otherwise, treat it as a value from the stack
+                operand1 = stack[-3][0]
+
+            # Check if stack[-1][2] is an integer or a tuple
+            if isinstance(stack[-1][2], tuple):  # If it's a tuple
+                operand2 = expression_value
+            else:  # Otherwise, treat it as a value from the stack
+                operand2 = stack[-1][0]
+
+            reduced_expression = f"{operand1}{operand2}"
 
             # Final reduction
+            print("stack: ", stack)
             stack = stack[:-4] + [(reduced_expression, "operand")]
+            print("stack: ", stack)
 
     # After all reductions, check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
+        # Update the value of 'IT' in the symbol table
+        if 'IT' not in symbol_table:
+            symbol_table['IT'] = {
+                'type': 'IDENTIFIER',
+                'value': stack[0][0],
+                'value_type': 'YARN',
+                'reference_environment': 'GLOBAL'
+            }
+        else:
+            symbol_table['IT']['value'] = stack[0][0]
+            symbol_table['IT']['value_type'] = 'YARN' 
         print("Valid concatenation expression.")
     else:
         print("ERROR: Invalid concatenation expression.")
         local_flag = False
 
     return local_flag
+
 
 def comparison_operation(operators, tokens, symbol_table, expression_operators, relational_flag):
     stack = []
@@ -1502,8 +1538,8 @@ symbol_table = {
     'y': {'type': 'IDENTIFIER', 'value': 'WIN', 'value_type': 'TROOF', 'reference_environment': 'GLOBAL'},
 }
 
-result = expression_checker(tokens, symbol_table, False)
+# result = expression_checker(tokens, symbol_table, False)
 
 # Expected: True (Valid concatenation expression)
-print(f"Concatenation Test Result: {result}")
-print(f"Updated Symbol Table: {symbol_table}")
+# print(f"Concatenation Test Result: {result}")
+# print(f"Updated Symbol Table: {symbol_table}")

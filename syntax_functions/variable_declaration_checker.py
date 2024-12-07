@@ -1,4 +1,6 @@
 from syntax_functions import semantics_functions
+from syntax_functions import expression_checker
+
 """
 Function to check if all variable declarations are in correct order
 Parameter: Lines of code between WAZZUP and BUHBYE
@@ -33,6 +35,7 @@ def variable_declaration_checker(variable_section, classified_tokens):
 
             if len(tokens) > 1 and tokens[1][1] == "IDENTIFIER":
                 variable_name = tokens[1][0]
+
             else:
                 prompt = f"ERROR in line {line_num}: Missing or invalid variable name after 'I HAS A'."
                 flag = False
@@ -65,49 +68,66 @@ def variable_declaration_checker(variable_section, classified_tokens):
                             prompt = f"ERROR in line {line_num}: YARN '{first_value}' is not properly enclosed in quotes."
                             raise Exception(prompt)
                             flag = False
+                        if value_part != None:
+                            if value_part[0][1] == "NUMBAR":
+                                value_part[0][0] = float(value_part[0][0])
+                            elif value_part[0][1] == "NUMBR":
+                                value_part[0][0] = int(value_part[0][0])
+
+                            semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_part[0][0], "value_type": value_type, "reference_environment": "Main"} )
+                        else:
+                            semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_part, "value_type": value_type, "reference_environment": "Main"} )
+
                     elif first_type == "IDENTIFIER":
                         pass
                     elif first_value in valid_operations:
+                        print("parameter to pass to expr check: ", value_part)
                         """Check if valid expression. If meron ng expression_checker, pwede iinsert dito"""
-                        operands = []
-                        is_operand = False
+                        if expression_checker.expression_checker(value_part, semantics_functions.symbols, False) == True:
+                            value_of_expr = semantics_functions.get_symbol("IT")['value']
+                            value_type_of_expr = semantics_functions.get_symbol("IT")['value_type']
+                            semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_of_expr, "value_type": value_type_of_expr, "reference_environment": "Main"} )
+                            
+                            flag = True
+                        # operands = []
+                        # is_operand = False
+                        # print("accept expression in declaration")
+                        # print(value_part[1][0])
 
-                        if len(value_part) > 1:
-                            operands.append(value_part[1][0])
+                        # if len(value_part) > 1:
+                        #     operands.append(value_part[1][0])
 
-                        for token, token_type in value_part[2:]:
-                            if token == "AN" and token_type == "KEYWORD":
-                                is_operand = True
-                                continue
+                        # for token, token_type in value_part[2:]:
+                        #     if token == "AN" and token_type == "KEYWORD":
+                        #         is_operand = True
+                        #         continue
 
-                            if is_operand:
-                                operands.append(token)
-                                is_operand = False
+                        #     if is_operand:
+                        #         operands.append(token)
+                        #         is_operand = False
 
-                        if len(operands) < 2:
-                            prompt = f"ERROR in line {line_num}: Operation '{first_value}' requires at least two operands."
-                            raise Exception(prompt)
-                            flag = False
-                        else:
-                            for operand in operands:
-                                if not any(
-                                    operand == token and token_type in ["IDENTIFIER", "NUMBR", "NUMBAR", "TROOF", "YARN"]
-                                    for line_tokens in classified_tokens.values()
-                                    for token, token_type in line_tokens
-                                ):
-                                    prompt = f"ERROR in line {line_num}: '{operand}' is not a valid operand."
-                                    raise Exception(prompt)
-                                    flag = False
+                        # if len(operands) < 2:
+                        #     prompt = f"ERROR in line {line_num}: Operation '{first_value}' requires at least two operands."
+                        #     raise Exception(prompt)
+                        #     flag = False
+                        # else:
+                        #     for operand in operands:
+                        #         if not any(
+                        #             operand == token and token_type in ["IDENTIFIER", "NUMBR", "NUMBAR", "TROOF", "YARN"]
+                        #             for line_tokens in classified_tokens.values()
+                        #             for token, token_type in line_tokens
+                        #         ):
+                        #             prompt = f"ERROR in line {line_num}: '{operand}' is not a valid operand."
+                        #             raise Exception(prompt)
+                        #             flag = False
                     else:
                         prompt = f"ERROR in line {line_num}: Invalid value '{value_part}' after 'ITZ'. Must be a valid literal, variable, or expression."
                         raise Exception(prompt)
                         flag = False
-            if value_part != None:
-                semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_part[0][0], "value_type": value_type, "reference_environment": "Main"} )
             else:
-                semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_part, "value_type": value_type, "reference_environment": "Main"} )
+                semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": None, "value_type": "NOOB", "reference_environment": "Main"} )
 
-
+        print("Updated Symvol table: ", semantics_functions.symbols)
         if flag:
             prompt = "Valid variable declaration."
             print(prompt)

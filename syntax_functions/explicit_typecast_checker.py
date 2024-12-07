@@ -235,7 +235,7 @@ def to_different_types(token_name, line_num, token_to_change, type_of_tok_to_cha
 #         else:
 #             idx += 1
 
-additional_tokens = {
+test = {
     5: [['MAEK', 'KEYWORD'], ['var1', 'IDENTIFIER'], ['A', 'KEYWORD'], ['NUMBAR', 'KEYWORD']],
     6: [['MAEK', 'KEYWORD'], ['var1', 'IDENTIFIER'], ['A', 'KEYWORD'], ['NUMBR', 'KEYWORD']],
     7: [['MAEK', 'KEYWORD'], ['var1', 'IDENTIFIER'], ['A', 'KEYWORD'], ['YARN', 'KEYWORD']],

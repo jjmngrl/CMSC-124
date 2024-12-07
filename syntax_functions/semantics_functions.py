@@ -58,6 +58,4 @@ def update_symbol(symbol_name, **updates):
 
 symbols = {
     "IT": {"type": "identifier", "value": None, "value_type": "NOOB", "reference_environment": "main"},
-    "y": {"type": "identifier", "value": 4.0, "value_type": "NUMBAR", "reference_environment": "main"},
-    "x": {"type": "identifier", "value": 3.0, "value_type": "NUMBAR", "reference_environment": "main"}
 }

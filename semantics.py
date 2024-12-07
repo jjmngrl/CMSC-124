@@ -14,9 +14,12 @@ from syntax_functions import func_call_checker
 from syntax_functions import gimmeh_statement_checker
 from syntax_functions import function_checker
 from syntax_functions import expression_checker
-
+from syntax_functions import semantics_functions
 def semantics(code_block, classified_tokens):
-    
+    #initialize symbol table
+    symbol_table = semantics_functions.symbols
+
+
     #Check semantics of Variable section
     wazzup_key = None
     buhbye_key = None
@@ -159,14 +162,14 @@ def semantics(code_block, classified_tokens):
 
         #     current_line = next_line
 
-        # #catch expression
-        # elif expression_checker.expression_checker(tokens[1:], False) == True:
-        #     print("Valid expression")
-        #     current_line += 1
-        #     statement_flag = True
+        #catch expression
+        elif expression_checker.expression_checker(tokens, symbol_table, False) == True:
+            print("Valid expression")
+            current_line += 1
+            statement_flag = True
             
         #catch assignment
-        elif tokens[1][0] == "R":
+        elif tokens[1][0] == "R" and len(tokens) == 3:
             print(f"Assignment statement at line {current_line}")
             result =  assignment_checker.assignment_semantics(current_line, tokens)
             if result:
@@ -191,7 +194,8 @@ def semantics(code_block, classified_tokens):
     return statement_flag
 
 
-
+# import syntax_analyzer
+# syntax_analyzer.main()
 classified_tokens = lex_main()
 code_block_in_program = {}
 program_indices = program_checker.program_checker(classified_tokens)
