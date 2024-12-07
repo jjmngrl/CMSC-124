@@ -1,3 +1,4 @@
+from syntax_functions import semantics_functions
 """
 Function to check if all variable declarations are in correct order
 Parameter: Lines of code between WAZZUP and BUHBYE
@@ -27,6 +28,8 @@ def variable_declaration_checker(variable_section, classified_tokens):
             variable_name = None
             itz_present = False
             value_part = None
+            value_type = None
+            
 
             if len(tokens) > 1 and tokens[1][1] == "IDENTIFIER":
                 variable_name = tokens[1][0]
@@ -55,7 +58,7 @@ def variable_declaration_checker(variable_section, classified_tokens):
                     return False
                 else:
                     first_value, first_type = value_part[0]
-
+                    value_type = first_type
                     if first_type in ["NUMBR", "YARN", "NUMBAR", "TROOF"]:
                         """Check if yarn and if it is enclosed in quotation marks"""
                         if first_type == "YARN" and not (first_value.startswith('"') and first_value.endswith('"')):
@@ -99,6 +102,11 @@ def variable_declaration_checker(variable_section, classified_tokens):
                         prompt = f"ERROR in line {line_num}: Invalid value '{value_part}' after 'ITZ'. Must be a valid literal, variable, or expression."
                         raise Exception(prompt)
                         flag = False
+            if value_part != None:
+                semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_part[0][0], "value_type": value_type, "reference_environment": "Main"} )
+            else:
+                semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_part, "value_type": value_type, "reference_environment": "Main"} )
+
 
         if flag:
             prompt = "Valid variable declaration."
