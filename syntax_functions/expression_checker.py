@@ -53,7 +53,7 @@ def expression_checker(tokens, symbol_table, flag=False):
     elif tokens[0][0] in nested_boolean_operators and tokens[0][1] == "KEYWORD":
         return operator_functions['nested_boolean'](nested_boolean_operators, tokens, expression_operators)
     elif tokens[0][0] in concatenation_operator and tokens[0][1] == "KEYWORD":
-        return operator_functions['concatenation'](concatenation_operator, tokens, expression_operators)
+        return operator_functions['concatenation'](concatenation_operator, tokens, expression_operators, symbol_table)
     elif tokens[0][0] in comparison_operators and tokens[0][1] == "KEYWORD":
         # Check if there's a relational operator with 'AN' before and after it
         return operator_functions['relational'](relational_operators, comparison_operators, tokens, symbol_table, expression_operators) if any(
@@ -733,9 +733,9 @@ def nested_boolean_operation(operators, tokens, expression_operators):
             print("ERROR: Remaining tokens after reduction do not form a valid boolean operation.")
             return False
 
-
-def concatenation_operation(operators, tokens, expression_operators):
+def concatenation_operation(operators, tokens, expression_operators, symbol_table):
     stack = []
+    temp_operand = []  # List to temporarily hold operands for processing
     local_flag = True
     index = 0  # Start processing tokens from the first index
 
@@ -745,14 +745,36 @@ def concatenation_operation(operators, tokens, expression_operators):
         token, token_type = token_info  # Unpack the token and its type
 
         # Check if the token is an operator (from either operators or expression_operators)
-        if token in operators or token in expression_operators and token_type == "KEYWORD":
+        if token in operators or (token in expression_operators and token_type == "KEYWORD"):
             stack.append((token, "operation", index))  # Add token with index
         elif token == "AN" and token_type == "KEYWORD":
             stack.append((token, "keyword", index))  # Add keyword with index
         elif token_type in ["NUMBR", "NUMBAR", "YARN", "TROOF", "NOOB", "IDENTIFIER"]:
-            stack.append((token, "operand", index))  # Add operand to stack
+            # If it's an IDENTIFIER, check if it exists in the symbol table
+            if token_type == "IDENTIFIER":
+                if token not in symbol_table:
+                    # If not found, treat as string and add to symbol table as IT
+                    val = str(token)  # Convert the value to string (YARN)
+                    type = 'YARN'
+                    symbol_table['IT'] = {
+                        'type': 'IDENTIFIER',
+                        'value': val,
+                        'value_type': type,
+                        'reference_environment': 'GLOBAL'
+                    }
+                else:
+                    val = symbol_table[token]['value']
+                    type = symbol_table[token]['value_type']
+            else:
+                val = token
+                type = token_type
+
+            # Add to temp_operand (don't check symbol table here, add directly)
+            temp_operand.append((val, type, index))
+
+            # Add operand to stack
+            stack.append((token, "operand", index))
         else:
-            # Exception(f"ERROR: Invalid token '{token}' in concatenation.")
             print(f"ERROR: Invalid token '{token}' in concatenation.")
             local_flag = False
 
@@ -768,9 +790,24 @@ def concatenation_operation(operators, tokens, expression_operators):
                 operation = stack[-4][0]
                 operand1 = stack[-3][0]
                 operand2 = stack[-1][0]
-                reduced_expression = f"{operation} {operand1} AN {operand2}"
 
-                # Replace the reduced portion of the stack with the reduced expression
+                # Fetch the actual values of the operands
+                val1 = symbol_table[operand1]['value'] if operand1 in symbol_table else operand1
+                val2 = symbol_table[operand2]['value'] if operand2 in symbol_table else operand2
+
+                # Concatenate the values of the operands (since we're dealing with "SMOOSH" operation)
+                reduced_val = val1 + val2
+                reduced_expression = f"{operation} {operand1} AN {operand2}"  # Store the reduced expression
+
+                # Update the IT value with the concatenated result
+                symbol_table['IT'] = {
+                    'type': 'IDENTIFIER',
+                    'value': reduced_val,  # Updated IT value
+                    'value_type': 'YARN',
+                    'reference_environment': 'GLOBAL'
+                }
+
+                # Replace the reduced portion of the stack with the concatenated result
                 reduced_index = (stack[-4][2], stack[-1][2])  # Capture the indices of the reduced tokens
                 stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
@@ -779,49 +816,38 @@ def concatenation_operation(operators, tokens, expression_operators):
 
                 # Skip validation if the first token is part of the reduced tokens
                 if tokens[0] in reduced_tokens:
-                    # print("Skipping validation since the first token is part of the reduced tokens.")
                     # Move the index to the token after the reduced portion
                     index = reduced_index[1] + 1
                     continue
 
-                # Print for debugging
-                # print(f"After reduction, stack: {stack}")
-                # print(f"Reduced tokens for validation: {reduced_tokens}")
-                # print(f"Reduced index: {reduced_index}")
-
                 # Validate the reduced expression by passing the reduced tokens to expression_checker
-                if expression_checker(reduced_tokens, False) == False:
-                    # Exception("ERROR: Reduced expression is invalid.")
+                if expression_checker(reduced_tokens, symbol_table, False) == False:
                     print("ERROR: Reduced expression is invalid.")
                     local_flag = False
                     break
                 else:
-                    # Move index to the token after the reduced portion
                     index = reduced_index[1] + 1
                     continue
 
         # Increment the index to move to the next token
         index += 1
 
-    # After all reductions, check for the final step
+    # After all reductions, check for the final step (outside of the loop)
     if len(stack) == 4:
         if (stack[-4][1] == "operation" and
             stack[-3][1] == "operand" and
             stack[-2][1] == "keyword" and
             stack[-1][1] == "operand"):
-            
+
             operation = stack[-4][0]
             operand1 = stack[-3][0]
             operand2 = stack[-1][0]
             reduced_expression = f"{operation} {operand1} AN {operand2}"
-            
+
             # Final reduction
             stack = stack[:-4] + [(reduced_expression, "operand")]
 
-    # Final state of the stack
-    # print(f"Final stack: {stack}")
-    
-    # Check if the final stack is valid
+    # After all reductions, check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
         print("Valid concatenation expression.")
     else:
@@ -1402,41 +1428,30 @@ def recast_checker(tokens):
 
     return "Error: Invalid recast statement"
 
-# boolean
+# concatenation
 tokens = [
-        ['ANY OF', 'KEYWORD'], 
+    ['SMOOSH', 'KEYWORD'],  # Concatenation operator
 
-        ['BOTH OF', 'KEYWORD'], 
-        
-        ['BOTH OF', 'KEYWORD'], ['x', 'IDENTIFIER'], ['AN', 'KEYWORD'], ['y', 'IDENTIFIER'],
-        
-        ['AN', 'KEYWORD'], ['y', 'IDENTIFIER'],
+    ['YARN1', 'IDENTIFIER'],      # Operand 1
 
-        ['AN', 'KEYWORD'], 
-        
-        ['y', 'IDENTIFIER'],
+    ['AN', 'KEYWORD'],      # 'AN' keyword
 
-        ['MKAY', 'KEYWORD'], 
-    ]
-
-# arithmetic
-# tokens = [['SUM OF', 'KEYWORD'], 
-#           ['PRODUKT OF', 'KEYWORD'], 
-#           ['x', 'IDENTIFIER'], 
-#           ['AN', 'KEYWORD'], 
-#           ['x', 'IDENTIFIER'], 
-#           ['AN', 'KEYWORD'], 
-#           ['PRODUKT OF', 'KEYWORD'], 
-#           ['y', 'IDENTIFIER'], 
-#           ['AN', 'KEYWORD'], 
-#           ['y', 'IDENTIFIER']]
+    ['BOTH OF', 'KEYWORD'],
+    ['x', 'IDENTIFIER'],
+    ['AN', 'KEYWORD'],      # should be WIN
+    ['y', 'IDENTIFIER']
+]
 
 symbol_table = {
     'IT': {'type': 'IDENTIFIER', 'value': '0', 'value_type': 'NOOB', 'reference_environment': 'GLOBAL'},
-    'x': {'type': 'IDENTIFIER', 'value': '0', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
-    'y': {'type': 'IDENTIFIER', 'value': '5', 'value_type': 'NUMBR', 'reference_environment': 'GLOBAL'},
+    'YARN1': {'type': 'IDENTIFIER', 'value': 'Hello', 'value_type': 'YARN', 'reference_environment': 'GLOBAL'},
+    'YARN2': {'type': 'IDENTIFIER', 'value': 'World', 'value_type': 'YARN', 'reference_environment': 'GLOBAL'},
+    'x': {'type': 'IDENTIFIER', 'value': 'WIN', 'value_type': 'TROOF', 'reference_environment': 'GLOBAL'},
+    'y': {'type': 'IDENTIFIER', 'value': 'WIN', 'value_type': 'TROOF', 'reference_environment': 'GLOBAL'},
 }
 
-expression_checker(tokens, symbol_table, False)
+result = expression_checker(tokens, symbol_table, False)
 
-print(symbol_table)
+# Expected: True (Valid concatenation expression)
+print(f"Concatenation Test Result: {result}")
+print(f"Updated Symbol Table: {symbol_table}")
