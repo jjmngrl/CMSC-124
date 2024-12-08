@@ -119,17 +119,17 @@ def semantics(code_block, classified_tokens):
             current_line += 1
 
         #catch loops
-        # elif tokens[0][0] == "IM IN YR":
-        #     print(f"Start of loop black at line {current_line}")
-        #     extract_block, next_line = extract_flowcontrol_block.extract_loop_block(code_block, current_line)
-        #     print("Extracted loop block:\n", extract_block)
-        #     result = loop_checker.loop_checker(extract_block)
-        #     if result == True:
-        #         print(f"valid loop block at line {current_line} to line {next_line-1}")
-        #         statement_flag = True
-        #     else:
-        #         raise Exception(result)
-        #     current_line = next_line  # Move to the next line after the block
+        elif tokens[0][0] == "IM IN YR":
+            print(f"Start of loop black at line {current_line}")
+            extract_block, next_line = extract_flowcontrol_block.extract_loop_block(code_block, current_line)
+            print("Extracted loop block:\n", extract_block)
+            result = loop_checker.loop_checker(extract_block)
+            if result == True:
+                print(f"valid loop block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(result)
+            current_line = next_line  # Move to the next line after the block
 
         # # #catch input
         # elif tokens[0][0] == "GIMMEH":
@@ -143,19 +143,19 @@ def semantics(code_block, classified_tokens):
 
         #     current_line += 1
         
-        # #catch function
-        # elif tokens[0][0] == "HOW IZ I":
-        #     print(f"Start of function block at line {current_line}")
-        #     extracted_block, next_line = function_checker.extract_function_block(code_block, current_line)
-        #     print("Extracted function block:\n",extracted_block)
-        #     result = function_checker.function_checker(extracted_block)
-        #     if result == True:
-        #         print(f"Valid functin block at line {current_line} to line {next_line-1}")
-        #         statement_flag = True
-        #     else:
-        #         raise Exception(result)
+        #catch function
+        elif tokens[0][0] == "HOW IZ I":
+            print(f"Start of function block at line {current_line}")
+            extracted_block, next_line = function_checker.extract_function_block(code_block, current_line)
+            print("Extracted function block:\n",extracted_block)
+            result = function_checker.function_checker(extracted_block)
+            if result == True:
+                print(f"Valid functin block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(result)
 
-        #     current_line = next_line
+            current_line = next_line
 
         #catch expression
         elif expression_checker.expression_checker(tokens, symbol_table, False) == True:
