@@ -11,13 +11,19 @@
             - next_line: The line number after "OIC" for further processing
     """
 def extract_ifelse_block(code_block, start_line):
-    
+    print("in extract if else: ", code_block)
     extracted_block = {}
     in_ifelse_block = False
+
 
     for line_num, tokens in code_block.items():
         if line_num < start_line:  # Skip lines before the start
             continue
+        print("token: ", tokens)
+        #handle empty lines
+        if not tokens:
+            extracted_block[line_num] = []
+
 
         for token, token_type in tokens:
             if token == "O RLY?" and token_type == "KEYWORD" and line_num == start_line:

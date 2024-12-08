@@ -21,11 +21,13 @@ def loop_checker(token):
     increment = False #flag to determine if operation is increment or decrement
     is_till_loop = False #flag to determine if loop is of type till or wile. if false then it is a wile loop
     loop_condtion = None
-    
+    expression_tokens = None
+    val_of_it = None
     print("IN LOOP CHECKERR")
 
     for line_num, tokens_in_line in token.items():
         for i, (token, token_type) in enumerate(tokens_in_line):
+            print("state:", current_state)
             print("Token: ",token)
 
             if current_state == "EXPECT_IM_IN_YR":
@@ -62,6 +64,7 @@ def loop_checker(token):
             elif current_state == "EXPECT_VARIDENT":
                 if token_type == "IDENTIFIER":
                     print("Variable:",token )
+                    var_name = token
                     #Check if variable is declared
                     result = semantics_functions.symbol_exists(token)
                     if not result:
@@ -88,20 +91,27 @@ def loop_checker(token):
 
                     #Get remaining tokens as the expression
                     expression_tokens = tokens_in_line[i + 1:]
-                    if not expression_checker(expression_tokens, False):
+                    print("Expression tokens: ", expression_tokens)
+                    if not expression_checker(expression_tokens, semantics_functions.symbols,False):
                         return f"syntax error at line {line_num}: Invalid expression after '{token}'"
                     
                     #loop condition = expression_tokens, call the expression evaluator here
-
+                    # expression_checker(expression_tokens,semantics_functions.symbols, False)
+                    print("UPDATED SYMBOL TABLE AFTER TIL OR WILE: ", semantics_functions.symbols)
+                    #get value of IT - because the value of the expression is stored there
+                    val_of_it = semantics_functions.get_symbol("IT")['value']
+                    print("VALUE OF IT IN LOOP DELCARATION: ", val_of_it)
                     #evaluation of loop_condition
                     #result of expression should be stored in IT
-
-                    #if is_still_loop == True:
-                        #if win, break
-                    #if is_still_loop == False
-                        #if fail, break
-
                     current_state = "COLLECT_LOOP_BODY"    
+
+                    if is_till_loop == True:
+                        if val_of_it == 'WIN':
+                            break
+                    if is_till_loop == False:
+                        if val_of_it == "FAIL":
+                            break
+
                     collecting_loop_body = True
                     break #stop further token processing on this line
                 else:
@@ -122,10 +132,24 @@ def loop_checker(token):
                     print("Valid loop body")
 
                     #check semantics
-                    # if is_till_loop == True:
+                    if is_till_loop == True:
                         #till loop
                         #while value of IT is FAIL, repeteadly call the evaluate flow control body
+                         while  val_of_it == "FAIL":
                             #check if increment
+                            if increment == True:
+                                #evaluate code_block
+
+                                #increment
+                                if semantics_functions.get_symbol(var_name)["value_type"] == "NUMBR":
+                                    semantics_functions.update_symbol(var_name, value=semantics_functions.get_symbol(var_name)["value"]+1)
+                                elif semantics_functions.get_symbol(var_name)["value_type"] == "NUMBAR":
+                                        semantics_functions.update_symbol(var_name, value=semantics_functions.get_symbol(var_name)["value"]+1.0)
+                                
+                                expression_checker(expression_tokens,semantics_functions.symbols, False)
+                                val_of_it = semantics_functions.get_symbol(var_name)['value']
+                                print("value of it: ",val_of_it)
+
 
                             #if true,
                                 #evaluate body - in evaluating chck ung GTFO then dpt irereturn niya ay break. so dapat may check na 
@@ -139,7 +163,22 @@ def loop_checker(token):
                                 #decrement
 
                                 #check if condition is win (true)
-                    # else: #wile loop
+                    else: #wile loop
+                        while val_of_it == "WIN":
+                            if increment == True:
+                                #evaluate code_block
+
+                                #increment
+                                if semantics_functions.get_symbol(var_name)["value_type"] == "NUMBR":
+                                    semantics_functions.update_symbol(var_name, value=semantics_functions.get_symbol(var_name)["value"]+1)
+                                elif semantics_functions.get_symbol(var_name)["value_type"] == "NUMBAR":
+                                    semantics_functions.update_symbol(var_name, value=semantics_functions.get_symbol(var_name)["value"]+1.0)
+                                
+                                print("Updated symbol table: ", semantics_functions.symbols)
+                                expression_checker(expression_tokens,semantics_functions.symbols, False)
+                                val_of_it = semantics_functions.get_symbol(var_name)['value']
+                                print("value of it: ",val_of_it)
+
 
                     current_state = "EXPECT_LOOPIDENT_END"
                     loop_body_tokens = {} #reset for the next loop body

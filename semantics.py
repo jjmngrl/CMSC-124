@@ -7,6 +7,7 @@ from syntax_functions import assignment_checker
 # from syntax_functions import statement_checker
 from syntax_functions import switch_checker
 from syntax_functions import ifelse_checker
+from syntax_functions import loop_checker
 from syntax_functions import visible_statement_checker
 from syntax_functions import extract_flowcontrol_block
 from syntax_functions import func_call_checker
@@ -53,50 +54,42 @@ def semantics(code_block, classified_tokens):
             
             code_block = new_code_block
         
-    print("Variable exist result: ", variable_section_exists)
-    print("Updated symbol table after checking variable section: \n", semantics_functions.symbols)
     statement_flag = False
 
-
-    print("\nCODE BLOCK: \n", code_block)
     """ Check succeeding line and determine the type of statement"""
     current_line = list(code_block.keys())[0] #This is the first line after the variable declaration
     while current_line in code_block:
         tokens = code_block[current_line]
-        print(f"\nToken being checked in line {current_line}: ", tokens)
 
         if current_line < list(code_block.keys())[-1]:
             catch_wtf = code_block[current_line+1]
-            # print(catch_wtf)
             switch_exist = False
             if catch_wtf != []:
                 switch_exist = True
-            # print(catch_wtf[0])
         if tokens == []:
             current_line += 1
             continue
         #check for print statement
         if tokens[0][0] == "VISIBLE":
-            print("Insert print checker here")
             visible_statement_checker.visible_statement_checker(current_line, tokens)
             statement_flag = True
             current_line += 1 #Move to the next line
 
-        # #catch for if-else
-        # elif tokens[0][0] == "O RLY?" and tokens[0][1] == "KEYWORD":
-        #     print(f"start of if-else block at line {current_line}")
-        #     extract_block, next_line = extract_flowcontrol_block.extract_ifelse_block(code_block, current_line)
-        #     print("Extracted block:\n", extract_block)
-        #     #Syntax analyzer
-        #     if ifelse_checker.ifelse_checker(extract_block):
-        #         print(f"valid if else block at line {current_line} to line {next_line-1}")
-        #         statement_flag = True
-        #     else:
-        #         raise Exception(f"ERROR in line {current_line}:Invalid if-else block.")
+        #catch for if-else
+        elif tokens[0][0] == "O RLY?" and tokens[0][1] == "KEYWORD":
+            print(f"start of if-else block at line {current_line}")
+            extract_block, next_line = extract_flowcontrol_block.extract_ifelse_block(code_block, current_line)
+            print("Extracted block:\n", extract_block)
+            #Syntax analyzer
+            if ifelse_checker.ifelse_checker(extract_block):
+                print(f"valid if else block at line {current_line} to line {next_line-1}")
+                statement_flag = True
+            else:
+                raise Exception(f"ERROR in line {current_line}:Invalid if-else block.")
             
-        #     #semantics
+            #semantics
 
-        #     current_line = next_line
+            current_line = next_line
 
         # #Catch switch
         # elif switch_exist == True and catch_wtf[0][0] == "WTF?":
@@ -136,7 +129,7 @@ def semantics(code_block, classified_tokens):
         #         raise Exception(result)
         #     current_line = next_line  # Move to the next line after the block
 
-        # #catch input
+        # # #catch input
         # elif tokens[0][0] == "GIMMEH":
         #     print(f"Input at line {current_line}")
 
@@ -190,7 +183,7 @@ def semantics(code_block, classified_tokens):
             print("Nah")
             current_line += 1
         
-    print(semantics_functions.symbols)
+    return(semantics_functions.symbols)
     return statement_flag
 
 
