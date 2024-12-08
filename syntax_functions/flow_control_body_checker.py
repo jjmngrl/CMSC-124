@@ -64,7 +64,7 @@ def flow_control_body_checker(code_block):
     """ Check next lines of the function"""
     current_line = list(code_block.keys())[0] #This is the first line after the variable declaration
     # current_line = line_of_func+1
-
+    print("code block in loop: ",code_block)
     while current_line in code_block:
         tokens = code_block[current_line]
         print(f"\ntoken being checked in line {current_line}: {tokens}")
@@ -75,9 +75,9 @@ def flow_control_body_checker(code_block):
             
         #Catch print statement
         if visible_statement_checker(current_line, tokens):
-            print("Valid print statement")
+            current_line += 1#Move to the next line
             flowcontrol_body_flag = True
-            current_line += 1 #Move to the next line
+            continue
 
 
         
@@ -85,10 +85,8 @@ def flow_control_body_checker(code_block):
         if len(tokens) > 1:
             #elif assignment
             if tokens[1][0] == "R":
-                print(f"Assignment statement at line {current_line}")
                 result =  assignment_checker.assignment_checker(current_line, tokens)
                 if result:
-                    print("Valid assignment statent")
                     flowcontrol_body_flag = True
                 else:
                     raise Exception(result)
@@ -177,10 +175,11 @@ def flow_control_body_checker(code_block):
         elif expression_checker.expression_checker(tokens[1:], False) == True:
             print("Valid expression")
             current_line += 1
-            return flowcontrol_body_flag
+            flowcontrol_body_flag = True
 
         else:
             current_line += 1
     
+    print("herrree",current_line)
     return flowcontrol_body_flag
 
