@@ -7,7 +7,6 @@ Return value: True - valid variable section
                 False - invalid variable section
 """
 def variable_section_checker(code_block, classified_tokens):
-    print("\nVariable section checker")
     index_of_WAZZUP = None
     index_of_BUHBYE = None
 

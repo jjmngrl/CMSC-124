@@ -10,7 +10,6 @@ Return value: True - Valid Variable declarations
 def variable_declaration_checker(variable_section, classified_tokens):
     valid_operations = ['SUM OF', 'DIFF OF', 'PRODUKT OF', 'QUOSHUNT OF', 'BIGGR OF', 'SMALLR OF', 'MOD OF']
     overall_flag = True
-    # print("inside var declaration checker")
     """Iterate through all possible Variable declaration inside WAZZUP and BUHBYE"""
     for line_num, tokens in variable_section.items():
         # print("checking line: ",tokens)
@@ -22,11 +21,9 @@ def variable_declaration_checker(variable_section, classified_tokens):
         if tokens[0][0] != "I HAS A" or tokens[0][1] != "KEYWORD":
             prompt = f"ERROR: Line must start with 'I HAS A'."
             flag = False
-            # print("ERROR: Line must start with 'I HAS A'.")
             raise Exception (f"ERROR in line {line_num}: Line must start with 'I HAS A'.")
             return False
         else:
-            # print("Starts with I HAS A")
             variable_name = None
             itz_present = False
             value_part = None
@@ -39,7 +36,6 @@ def variable_declaration_checker(variable_section, classified_tokens):
             else:
                 prompt = f"ERROR in line {line_num}: Missing or invalid variable name after 'I HAS A'."
                 flag = False
-                # print("ERROR: Missing or invalid variable name after 'I HAS A'.")
                 raise Exception(prompt)
                 return False
 
@@ -57,7 +53,6 @@ def variable_declaration_checker(variable_section, classified_tokens):
                     prompt = f"ERROR in line {line_num}: No value provided after 'ITZ'."
                     flag = False
                     raise Exception(prompt)
-                    print("ERROR: No value provided after 'ITZ'.")
                     return False
                 else:
                     first_value, first_type = value_part[0]
@@ -81,7 +76,6 @@ def variable_declaration_checker(variable_section, classified_tokens):
                     elif first_type == "IDENTIFIER":
                         pass
                     elif first_value in valid_operations:
-                        print("parameter to pass to expr check: ", value_part)
                         """Check if valid expression. If meron ng expression_checker, pwede iinsert dito"""
                         if expression_checker.expression_checker(value_part, semantics_functions.symbols, False) == True:
                             value_of_expr = semantics_functions.get_symbol("IT")['value']
@@ -89,37 +83,7 @@ def variable_declaration_checker(variable_section, classified_tokens):
                             semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": value_of_expr, "value_type": value_type_of_expr, "reference_environment": "Main"} )
                             
                             flag = True
-                        # operands = []
-                        # is_operand = False
-                        # print("accept expression in declaration")
-                        # print(value_part[1][0])
-
-                        # if len(value_part) > 1:
-                        #     operands.append(value_part[1][0])
-
-                        # for token, token_type in value_part[2:]:
-                        #     if token == "AN" and token_type == "KEYWORD":
-                        #         is_operand = True
-                        #         continue
-
-                        #     if is_operand:
-                        #         operands.append(token)
-                        #         is_operand = False
-
-                        # if len(operands) < 2:
-                        #     prompt = f"ERROR in line {line_num}: Operation '{first_value}' requires at least two operands."
-                        #     raise Exception(prompt)
-                        #     flag = False
-                        # else:
-                        #     for operand in operands:
-                        #         if not any(
-                        #             operand == token and token_type in ["IDENTIFIER", "NUMBR", "NUMBAR", "TROOF", "YARN"]
-                        #             for line_tokens in classified_tokens.values()
-                        #             for token, token_type in line_tokens
-                        #         ):
-                        #             prompt = f"ERROR in line {line_num}: '{operand}' is not a valid operand."
-                        #             raise Exception(prompt)
-                        #             flag = False
+ 
                     else:
                         prompt = f"ERROR in line {line_num}: Invalid value '{value_part}' after 'ITZ'. Must be a valid literal, variable, or expression."
                         raise Exception(prompt)
@@ -127,10 +91,8 @@ def variable_declaration_checker(variable_section, classified_tokens):
             else:
                 semantics_functions.add_symbol(variable_name, {"type": "identifier", "value": None, "value_type": "NOOB", "reference_environment": "Main"} )
 
-        print("Updated Symvol table: ", semantics_functions.symbols)
         if flag:
             prompt = "Valid variable declaration."
-            print(prompt)
         # result.append((f"Line {line_num}: {tokens}", prompt))
 
         if not flag:
