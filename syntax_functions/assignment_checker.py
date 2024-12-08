@@ -1,6 +1,7 @@
 from syntax_functions.literal_checker import literal_checker
 from syntax_functions.identifier_checker import identifier_checker
 from syntax_functions.semantics_functions import *
+from syntax_functions import semantics_functions
 # from literal_checker import literal_checker
 # from identifier_checker import identifier_checker
 # from expression_checker import expression_checker
@@ -11,6 +12,9 @@ def assignment_checker(line_num, tokens):
     flag = False  # Tracks if all VISIBLE statements are valid
     # Check if statement starts with variable
     if identifier_checker(tokens[0]):
+        result = semantics_functions.symbol_exists(tokens[0][0])
+        if not result:
+            raise Exception(f"Error in line {line_num}: Variable {tokens[0][0]} not declared")
         # Check if there's a value after 'R'
         if len(tokens) < 3:
             # result.append("ERROR: Missing value after 'VISIBLE'.")
@@ -19,55 +23,47 @@ def assignment_checker(line_num, tokens):
         else:
             visible_part = tokens[2:]
             # first_value, first_type = visible_part[0]
-           
-
 
             # Check if it's a literal
             if len(visible_part) > 1   == True:
                 # result.append("Valid literal")
-                if expression_checker(tokens[2:], False) == True:
+                if expression_checker(tokens[2:], semantics_functions.symbols, False) == True:
+                    val_of_it = semantics_functions.get_symbol("IT")['value']
+                    type_of_val = semantics_functions.get_symbol("IT")['value_type']
+                    semantics_functions.update_symbol(tokens[0][0], value=val_of_it, value_type=type_of_val)
                     flag = True 
             # Check if it's an identifier
             else:
                     
                 if identifier_checker(visible_part[0]) == True:
                     # result.append("Valid identifier")
+
+                    result = semantics_functions.symbol_exists(visible_part[0][0])
+                    var_name = visible_part[0][0]
+                    # print("result" ,result) 
+                    if not result:
+                        raise Exception(f"Error in line {line_num}: Variable {visible_part[0][0]} is not declared")
                     flag = True
-                    
+
+                    val_of_var = semantics_functions.get_symbol(var_name)['value']
+                    type_of_var = semantics_functions.get_symbol(var_name)['value_type']
+                    semantics_functions.update_symbol(tokens[0][0], value=val_of_var, value_type=type_of_var)
                     #Semantics - check if variable is in the symbol table
                     # symbol_exists(tokens[0][0])
 
                 # Check if it's a valid expression
                 elif literal_checker(visible_part[0]):
                         # result.append("Valid expression")
+                    
+                    if visible_part[0][1] == "NUMBAR":
+                        visible_part[0][0] = float(visible_part[0][0])
+                    elif visible_part[0][1] == "NUMBR":
+                        visible_part[0][0] = int(visible_part[0][0])
+                    semantics_functions.update_symbol(tokens[0][0], value=visible_part[0][0], value_type=visible_part[0][1])
                     flag = True
-
-            # # Check if the keyword is 'IT'
-            # elif first_value == "IT":
-            #     #Check if there is a token after IT
-            #     if (len(visible_part)) > 1:
-            #         raise Exception( f"ERRROR at line {line_num} : There should be no other token after IT")
-            #     flag = True
-            # else:
-            #     # If it's none of the above, mark it invalid
-            #     # result.append(f"ERROR: Invalid value after 'VISIBLE': {first_value}")
-            #     raise Exception(f"ERROR at line {line_num}: Invalid value after 'VISIBLE': {first_value}")
-            #     flag = False
     else:
-        # If the line doesn't start with 'VISIBLE', it's invalid
-        # result.append("ERROR: Line does not start with 'VISIBLE'.")
-        # raise Exception("ERROR: Line does not start with 'VISIBLE'.")
         return False
-
-    # Return the result flag (True if valid, False if invalid)
     return flag
-
-test_case = {
-    13: [['x', 'IDENTIFIER'], ['R', 'KEYWORD'], ['SMOOSH', 'KEYWORD'], ['x', 'IDENTIFIER'], ['AN', 'KEYWORD'], ['y', 'IDENTIFIER']],
-    14: [['y', 'IDENTIFIER'], ['R', 'KEYWORD'], ['100', 'NUMBR']],
-    19: [['y', 'IDENTIFIER'], ['R', 'KEYWORD'], ['0', 'NUMBR']],
-    20: [['y', 'IDENTIFIER'], ['R', 'KEYWORD'], ['MAEK', 'KEYWORD'], ['y', 'IDENTIFIER'], ['A', 'KEYWORD'], ['TROOF', 'KEYWORD']],
-}
 
 
 
