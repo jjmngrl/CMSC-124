@@ -5,6 +5,7 @@ from syntax_functions.expression_checker import expression_checker
 from syntax_functions import semantics_functions
 
 def visible_statement_checker(line_num, tokens):
+    import semantics 
     # Start by adding a log entry to show we're inside the visible statement checker
     # result.append("\nInside visible statement checker")
 
@@ -29,8 +30,9 @@ def visible_statement_checker(line_num, tokens):
             if literal_checker(visible_part[0]) == True:
                 # result.append("Valid literal")
                 semantics_functions.update_symbol("IT", value=first_value, value_type=first_type )
-                output = semantics_functions.get_symbol("IT")['value']
-                print(output)
+                output_to_terminal = semantics_functions.get_symbol("IT")['value']
+                print(output_to_terminal)
+                semantics.output[line_num] = [output_to_terminal]
                 flag = True
             # Check if it's an identifier
             elif identifier_checker(visible_part[0]) == True:
@@ -41,9 +43,10 @@ def visible_statement_checker(line_num, tokens):
                 var_name = tokens[0][0]
                 if not result:
                     raise Exception(f"Error in line {line_num}: Variable {visible_part[0][0]} is not declared")
-                output = semantics_functions.get_symbol(visible_part[0][0])['value']
-                print(output)
+                output_to_terminal = semantics_functions.get_symbol(visible_part[0][0])['value']
+                print(output_to_terminal)
 
+                semantics.output[line_num] = [output_to_terminal]
 
             
             # Check if it's a valid expression
@@ -51,8 +54,9 @@ def visible_statement_checker(line_num, tokens):
                 if expression_checker(tokens[1:], semantics_functions.symbols, False) == True:
                     # result.append("Valid expression")
                     flag = True
-                    output = semantics_functions.get_symbol("IT")['value']
-                    print(output)
+                    output_to_terminal = semantics_functions.get_symbol("IT")['value']
+                    print(output_to_terminal)
+                    semantics.output[line_num] = [output_to_terminal]
             # Check if the keyword is 'IT'
             elif first_value == "IT":
                 #Check if there is a token after IT

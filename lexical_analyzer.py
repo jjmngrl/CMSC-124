@@ -281,7 +281,7 @@ def lex_main(file_path):
         formatted_classifications = ', '.join(
             [f"[{repr(token)}, {repr(classification)}]" for token, classification in classifications]
         )
-        print(f"Line {line_num}: {formatted_classifications}") 
+        # print(f"Line {line_num}: {formatted_classifications}") 
         
     return classified_tokens
 

@@ -16,10 +16,12 @@ from syntax_functions import gimmeh_statement_checker
 from syntax_functions import function_checker
 from syntax_functions import expression_checker
 from syntax_functions import semantics_functions
+
+output = {}
+
 def semantics(code_block, classified_tokens):
     #initialize symbol table
     symbol_table = semantics_functions.symbols
-
 
     #Check semantics of Variable section
     wazzup_key = None
@@ -189,17 +191,45 @@ def semantics(code_block, classified_tokens):
 
 # import syntax_analyzer
 # syntax_analyzer.main()
-classified_tokens = lex_main()
-code_block_in_program = {}
-program_indices = program_checker.program_checker(classified_tokens)
-if program_indices:
-    #program is valid
-    index_of_HAI, index_of_KTHXBYE = program_indices
-    #dictionary that does not contain "HAI" and "KBYETHX"
-    code_block_in_program = {
-        k: classified_tokens[k]
-        for k in sorted(classified_tokens.keys())
-        if index_of_HAI < k < index_of_KTHXBYE
-    }
+# classified_tokens = lex_main()
+# code_block_in_program = {}
+# program_indices = program_checker.program_checker(classified_tokens)
+# if program_indices:
+#     #program is valid
+#     index_of_HAI, index_of_KTHXBYE = program_indices
+#     #dictionary that does not contain "HAI" and "KBYETHX"
+#     code_block_in_program = {
+#         k: classified_tokens[k]
+#         for k in sorted(classified_tokens.keys())
+#         if index_of_HAI < k < index_of_KTHXBYE
+#     }
 
-semantics(code_block_in_program, classified_tokens)
+# semantics(code_block_in_program, classified_tokens)
+
+def process_file_for_semantics(file_path):
+    """
+    This function takes the file path, performs lexical analysis, 
+    and processes the file for semantic analysis. 
+    It returns the symbol table.
+    """
+    # Perform lexical analysis with the given file path to get classified tokens
+    classified_tokens = lex_main(file_path)
+
+    # Extract the code block from the classified tokens
+    code_block_in_program = {}
+    program_indices = program_checker.program_checker(classified_tokens)
+
+    if program_indices:
+        index_of_HAI, index_of_KTHXBYE = program_indices
+        # Create a dictionary that does not contain "HAI" and "KTHXBYE"
+        code_block_in_program = {
+            k: classified_tokens[k]
+            for k in sorted(classified_tokens.keys())
+            if index_of_HAI < k < index_of_KTHXBYE
+        }
+
+    semantics(code_block_in_program, classified_tokens)
+    print(output)
+    # Perform semantic checks and return the updated symbol table
+    print(semantics_functions.symbols)  # This will update the symbol table
+    return semantics_functions.symbols  # Return the updated symbol table
