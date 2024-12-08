@@ -1,7 +1,7 @@
-# from syntax_functions.data_type_checker import data_type_checker
-# from syntax_functions  import semantics_functions
-# from syntax_functions import assignment_checker
-# from syntax_functions.explicit_typecast_checker import to_different_types
+from syntax_functions.data_type_checker import data_type_checker
+from syntax_functions  import semantics_functions
+from syntax_functions import assignment_checker
+from syntax_functions.explicit_typecast_checker import to_different_types
 import re
 
 """ 
@@ -121,24 +121,31 @@ def arithmetic_operation(operators, tokens, symbol_table):
                     print("identifier_info: ", identifier_info)
                     print()
                     val = identifier_info['value']
-                    type = identifier_info['value_type']
+                    val_type = identifier_info['value_type']
 
-                    if type == 'NUMBR':
+                    if val_type == 'NUMBR':
                         pass
-                    elif type == 'NUMBAR':
+                    elif val_type == 'NUMBAR':
                         numbar_flag = 1
-                    elif type == 'TROOF':
+                    elif val_type == 'TROOF':
                         if val == 'FAIL':
                             val = 0
-                            type = 'NUMBR'
+                            val_type = 'NUMBR'
                         elif val == 'WIN':
                             val = 1
-                            type = 'NUMBR'
+                            val_type = 'NUMBR'
                         else:
                             print("SEMANTICS ERROR: 1Invalid troof value")
                             return False
-                    elif type == 'YARN':
-                        if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
+                    elif val_type == 'YARN':
+                        print(f"token: {token}")
+
+                        val = token.strip('"')
+                        if re.match(r'^[\d]+$', val):  # Match digits only
+                            val = int(val)  # Convert back to integer after matching
+                        elif re.match(r'^[\d]+\.[\d]+$', val):  # Match decimal numbers
+                            val = float(val)  # Convert to float
+                        else:
                             print("SEMANTICS ERROR: YARN not typecastable")
                             return False
             elif token_type == 'NUMBR':
@@ -156,7 +163,14 @@ def arithmetic_operation(operators, tokens, symbol_table):
                     print("SEMANTICS ERROR: 2Invalid troof value")
                     return False
             elif token_type == 'YARN':
-                if not re.match(r'^[\d]+$', val):  # The regex matches only numbers
+                print(f"token: {token}")
+                val = token.strip('"')
+                print(f"val: {val}")
+                if re.match(r'^[\d]+$', val):  # Match digits only
+                    val = int(val)  # Convert back to integer after matching
+                elif re.match(r'^[\d]+\.[\d]+$', val):  # Match decimal numbers
+                    val = float(val)  # Convert to float
+                else:
                     print("SEMANTICS ERROR: YARN not typecastable")
                     return False
             # print(val)
@@ -371,31 +385,31 @@ def boolean_operation(operators, tokens, symbol_table, expression_operators, nes
                     # Handle IDENTIFIER logic
                     identifier_info = symbol_table[token]
                     val = identifier_info['value']
-                    type = identifier_info['value_type']
+                    val_type = identifier_info['value_type']
 
                     # print("val: ", val)
                     # print("type: ", type)
 
-                    if type == 'NUMBR':
+                    if val_type == 'NUMBR':
                         val = int(val)  # Convert string to integer for numeric comparison
                         val = 'WIN' if val != 0 else 'FAIL'
-                    elif type == 'NUMBAR':
+                    elif val_type == 'NUMBAR':
                         val = float(val)  # Convert to float if it's a number
                         val = 'WIN' if val != 0 else 'FAIL'
-                    elif type == 'TROOF':
+                    elif val_type == 'TROOF':
                         pass  # Handle TROOF if necessary
-                    elif type == 'YARN':
+                    elif val_type == 'YARN':
                         val = 'WIN' if val != "" else 'FAIL'
             # For direct NUMBR types
-            elif type == 'NUMBR':
+            elif val_type == 'NUMBR':
                 val = int(val)  # Convert string to integer for numeric comparison
                 val = 'WIN' if val != 0 else 'FAIL'
-            elif type == 'NUMBAR':
+            elif val_type == 'NUMBAR':
                 val = float(val)  # Convert to float if it's a number
                 val = 'WIN' if val != 0 else 'FAIL'
-            elif type == 'TROOF':
+            elif val_type == 'TROOF':
                 pass  # Handle TROOF if necessary
-            elif type == 'YARN':
+            elif val_type == 'YARN':
                 val = 'WIN' if val != "" else 'FAIL'
 
             # print("val: ", val)
@@ -841,10 +855,10 @@ def concatenation_operation(operators, tokens, symbol_table, expression_operator
                     break
                 else:
                     val = symbol_table[token]['value']
-                    type = symbol_table[token]['value_type']
+                    val_type = symbol_table[token]['value_type']
             else:
                 val = token
-                type = token_type
+                val_type = token_type
 
             # Add to temp_operand (don't check symbol table here, add directly)
             temp_operand.append((val, type, index))
@@ -1042,6 +1056,12 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
             token, token_type = token_info  # Unpack the token and its type
         elif len(token_info) == 3 and relational_flag == True:
             token, token_type, index = token_info
+            print(token)
+            #change token type based on its data type
+            if type(token) == float:
+                token_type = "NUMBAR"
+            elif type(token) == int:
+                token_type = "NUMBR"
 
         # Check if the token is an operator (from either operators or expression_operators)
         if token in operators or token in expression_operators and token_type == "KEYWORD":
@@ -1059,35 +1079,39 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
                     # Only accepts NUMBR and NUMBAR
                     identifier_info = symbol_table[token]
                     val = identifier_info['value']
-                    type = identifier_info['value_type']
-
-                    if type == 'NUMBR':
+                    val_type = identifier_info['value_type']
+                    print("IDENTIFIER INFO: ", identifier_info)
+                    print("VAL: ", val)
+                    if val_type == 'NUMBR':
                         numbr_flag = 1
-                    elif type == 'NUMBAR':
+                    elif val_type == 'NUMBAR':
                         numbar_flag = 1
                     else:
                         print(f"SEMANTICS ERROR: {val} is not a NUMBR/NUMBAR variable")
                         local_flag = False
                         break
             else:
+                print("NOT AN IDENTIFIER")
                 if token_type == 'NUMBR':
-                    val = token
+                    val = int(token)
                     numbr_flag = 1
                 elif token_type == 'NUMBAR':
-                    val = token
+                    val = float(token)
                     numbar_flag = 1
                 else: 
                     print(f"SEMANTICS ERROR: {val} is not a NUMBR/NUMBAR literal")
                     local_flag = False
                     break
 
-            stack.append((token, "operand", index))  # Add operand to stack
+            stack.append((val, "operand", index))  # Add operand to stack
         elif relational_flag == True and len(token_info) == 3:
                 stack.append((token, token_type, index))
         else:
             print(f"ERROR: Invalid token '{token}' in comparison.")
             local_flag = False
             break
+
+        
         
         if numbar_flag == 1 and numbr_flag == 1:
             print(f"SEMANTICS ERROR: Operands should be all NUMBRs or all NUMBARs")
@@ -1095,7 +1119,8 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
             break
 
         # Check for the pattern (operation operand AN operand)
-        # print("Stack: ", stack)
+        print("Stack: ", stack)
+        stack_for_final_check = stack
         if len(stack) >= 4:
             # Look for a valid reduction pattern: operation operand AN operand
             if (stack[-4][1] == "operation" and
@@ -1156,6 +1181,8 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
                 reduced_tokens = tokens[reduced_index[0]:reduced_index[1] + 1]  # Slice the original tokens list
                 # print("reduced_tokens: ", reduced_tokens)
                 # Skip validation if the first token is part of the reduced tokens
+                
+                print("reduced_tokens: ", reduced_tokens)
                 if tokens[0] in reduced_tokens:
                     # print("Skipping validation since the first token is part of the reduced tokens.")
                     # Move the index to the token after the reduced portion
@@ -1166,7 +1193,7 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
                 # print(f"After reduction, stack: {stack}")
                 # print(f"Reduced tokens for validation: {reduced_tokens}")
                 # print(f"Reduced index: {reduced_index}")
-
+                
                 # Validate the reduced expression by passing the reduced tokens to expression_checker
                 if expression_checker(reduced_tokens, False) == False:
                     # Exception("ERROR: Reduced expression is invalid.")
@@ -1183,7 +1210,11 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
 
     # print("Stack: ", stack)
     # After all reductions, check for the final step
-    if len(stack) == 4:
+    print("FINAL STEP HERE _______________--")
+    print(stack_for_final_check)
+    print(stack[0][0][1])
+    if len(stack_for_final_check) == 4:
+        stack = stack_for_final_check
         if (stack[-4][1] == "operation" and
             stack[-3][1] == "operand" and
             stack[-2][1] == "keyword" and
@@ -1193,23 +1224,25 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
             operand1 = stack[-3][0]
             operand2 = stack[-1][0]
             reduced_expression = f"{operation} {operand1} AN {operand2}"
-            
-            if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
-                operand1_value = stack[-3][2]
-            else:
-                operand1_value = operand1
+            # if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
+            #     operand1_value = stack[-3][2]
+            # else:
+            #     # operand1_value = operand1
+            #     operand1_value = 
 
-            if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
-                operand2_value = stack[-1][2]
-            else:
-                operand2_value = operand2
-
+            # if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
+            #     operand2_value = stack[-1][2]
+            # else:
+            #     operand2_value = operand2
+            # operand1_value = semantics_functions.get_symbol(operand1)['value']
+            # operand2_value = semantics_functions.get_symbol(operand2)['value']
+            print(f"operand1: {operand1}; operand2: {operand2}")
             if operation == 'BOTH SAEM':
                 # If operand1_value is equal to operand2_value, result is 'WIN', otherwise 'FAIL'
-                result = 'WIN' if operand1_value == operand2_value else 'FAIL'
+                result = 'WIN' if operand1 == operand2 else 'FAIL'
             elif operation == 'DIFFRINT':
                 # If operand1_value is not equal to operand2_value, result is 'WIN', otherwise 'FAIL'
-                result = 'WIN' if operand1_value != operand2_value else 'FAIL'
+                result = 'WIN' if operand1!= operand2 else 'FAIL'
             else:
                 print(f"ERROR: Invalid operation '{operation}'.")
                 local_flag = False
@@ -1230,6 +1263,7 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
             reduced_index = (stack[-4][2], stack[-1][2])  # Capture the indices of the reduced tokens
             stack = stack[:-4] + [(reduced_expression, "operand", reduced_index)]  # Replace the reduced tokens with the new expression
 
+    print("NGEK")
 
     # Final state of the stack
     # print(f"Final stack: {stack}")
@@ -1242,7 +1276,7 @@ def comparison_operation(operators, tokens, symbol_table, expression_operators, 
         local_flag = False
 
     # print()
-    # print("symbol table: ", symbol_table)
+    print("symbol table: ", symbol_table)
     return local_flag
 
 def relational_operation(relational_operators, comparison_operators, tokens, symbol_table, expression_operators):
@@ -1272,6 +1306,8 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
         else:
             second_part.append(token)
 
+    print(f"first part: {first_part}\nsecond part: {second_part}")
+
     # Debugging output for token splitting
     if first_part:
         # print(f"First Part (Comparison): {first_part}")
@@ -1298,6 +1334,7 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
     while index < len(second_part):
         token_info = second_part[index]
         token, token_type = token_info  # Unpack the token and its type
+        print("token: ", token)
 
         # Check if the token is an operator (from relational_operators or expression_operators)
         if token in relational_operators or token in comparison_operators and token_type == "KEYWORD":
@@ -1305,6 +1342,7 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
         elif token == "AN" and token_type == "KEYWORD":
             stack.append((token, "keyword", index))  # Add keyword with index
         elif token_type in ["NUMBR", "NUMBAR", "YARN", "IDENTIFIER"]:
+            print("DITO PUMASOK")
             if token_type == "IDENTIFIER":
                 # Check if it's in the symbol table
                 if token not in symbol_table:
@@ -1315,11 +1353,11 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
                     # Only accepts NUMBR and NUMBAR
                     identifier_info = symbol_table[token]
                     val = identifier_info['value']
-                    type = identifier_info['value_type']
+                    val_type = identifier_info['value_type']
 
-                    if type == 'NUMBR':
+                    if val_type == 'NUMBR':
                         numbr_flag = 1
-                    elif type == 'NUMBAR':
+                    elif val_type == 'NUMBAR':
                         numbar_flag = 1
                     else:
                         print(f"SEMANTICS ERROR: {val} is not a NUMBR/NUMBAR variable")
@@ -1328,10 +1366,11 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
             
             else:
                 if token_type == 'NUMBR':
-                    val = token
+                    print("HERE")
+                    val = int(token)
                     numbr_flag = 1
                 elif token_type == 'NUMBAR':
-                    val = token
+                    val = float(token)
                     numbar_flag = 1
                 else: 
                     print(f"SEMANTICS ERROR: {val} is not a NUMBR/NUMBAR literal")
@@ -1343,7 +1382,7 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
                 local_flag = False
                 break
             else:
-                stack.append((token, "operand", index))  # Add operand to stack
+                stack.append((val, "operand", index))  # Add operand to stack
                 # print()
                 # print("variables: ", variables)
                 # print()
@@ -1353,7 +1392,9 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
             print(f"ERROR: Invalid token '{token}' in relational processing.")
             local_flag = False
             break
-
+        
+        stack_for_final_check = stack
+        # print("VAL: ", val)
         # Check for the pattern (operation operand AN operand)
         if len(stack) >= 4:
             # Look for a valid reduction pattern: operation operand AN operand
@@ -1379,9 +1420,11 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
 
                 if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
                     operand2_value = stack[-1][2]
+                    print("OPERAND2: ",operand2_value)
                 else:
                     operand2_value = operand2
 
+               
                 if operation == 'BIGGR OF':
                     # If operand1_value is greater to operand2_value, result is 'WIN', otherwise 'FAIL'
                     result = token1 if operand1_value > operand2_value else token2
@@ -1422,7 +1465,8 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
         index += 1
 
     # After all reductions, check for the final step
-    if len(stack) == 4:
+    if len(stack_for_final_check) == 4:
+        stack = stack_for_final_check
         if (stack[-4][1] == "operation" and
                 stack[-3][1] == "operand" and
                 stack[-2][1] == "keyword" and
@@ -1436,28 +1480,28 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
             token2 = operand2
             reduced_expression = f"{operation} {operand1} AN {operand2}"
 
-            if len(stack[-3]) == 3:  # Check if operand1 has a value (evaluated)
-                operand1_value = stack[-3][2]
-                token1 = operand1
-            else:
-                operand1_value = operand1
-                token1 = operand1
+            print(f"stack: {stack}")
 
-            if len(stack[-1]) == 3:  # Check if operand2 has a value (evaluated)
-                operand2_value = stack[-1][2]
-            else:
-                operand2_value = operand2
+            # #check if operand1 is in symbol table:
+            # if semantics_functions.symbol_exists(operand1):
+            #     operand1_value = semantics_functions.get_symbol(operand1)['value']
+            # else:
+                #identify if its type
 
+            # operand2_value = semantics_functions.get_symbol(operand2)['value']
+            print(f"operand 1: {operand1}; operand2: {operand2}")
             if operation == 'BIGGR OF':
                 # If operand1_value is greater to operand2_value, result is 'WIN', otherwise 'FAIL'
-                result = token1 if operand1_value > operand2_value else token2
+                result = token1 if operand1 > operand2 else token2
             elif operation == 'SMALLR OF':
                 # If operand1_value is less to operand2_value, result is 'WIN', otherwise 'FAIL'
-                result = token1 if operand1_value < operand2_value else token2
+                result = token1 if operand1 < operand2 else token2
             else:
                 print(f"ERROR: Invalid operation '{operation}'.")
                 local_flag = False
                 # break
+
+            print("Result: ",result)
 
             # Update the value of 'IT' in the symbol table
             if 'IT' not in symbol_table:
@@ -1489,10 +1533,17 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
     
     # Check if the final stack is valid
     if local_flag and len(stack) == 1 and stack[0][1] == "operand":
+        print("WOW")
         print("Valid relational expression.")
+        print("stack: ", stack)
+        print("updated symbol table after relationa;l: ", semantics_functions.symbols)
         
         # Validate the original tokens as a comparison expression
         # print("\nChecking if tokens are a valid comparison...")
+        print(stack)
+        # token_of_stack = stack[0][0]
+        # type_of_stack = semantics_functions.get_symbol(token_of_stack)['type']
+        # [[token_of_stack,type_of_stack.upper()]]
         if comparison_operation(comparison_operators, first_part + stack, symbol_table, expression_operators, True) == False:  # Assuming `expression_checker` is the comparison validator
             # Exception("ERROR: Tokens do not form a valid comparison.")
             print("ERROR: Tokens do not form a valid comparison.")
@@ -1504,6 +1555,7 @@ def relational_operation(relational_operators, comparison_operators, tokens, sym
         local_flag = False
 
     if local_flag == True:
+        print("stack: ", stack)
         print("Valid relational expression")
     return local_flag
 
