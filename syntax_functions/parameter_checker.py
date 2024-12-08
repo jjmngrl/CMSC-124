@@ -6,9 +6,6 @@ from syntax_functions.expression_checker import expression_checker
 # from identifier_checker import identifier_checker
 
 def parameter_checker(token, line_num):
-    print("\ninside parameter checker function")
-    print("token to check: ",len(token))
-    print(token)
     """
     Algo:
         - check if length of tokens is of 1 or more

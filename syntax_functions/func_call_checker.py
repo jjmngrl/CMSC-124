@@ -1,6 +1,8 @@
 
 from syntax_functions.parameter_checker import parameter_checker
 from syntax_functions.identifier_checker import identifier_checker
+from syntax_functions import semantics_functions
+
 
 def function_call_checker(tokens, line_num):
     """
@@ -10,9 +12,8 @@ def function_call_checker(tokens, line_num):
     """
     current_state = "EXPECT_I_IZ"
     param_tokens = []  # To collect parameter tokens for validation
-
+    function_name = None
     for idx, token in enumerate(tokens):
-        # print(tokens_in_line)
         
         # # Flatten tokens for easier parsing
         # for idx, (token, token_type) in enumerate(tokens_in_line):  # Unpack token and its type
@@ -26,6 +27,11 @@ def function_call_checker(tokens, line_num):
             # Check if the type is IDENTIFIER
             if token[1] == "IDENTIFIER":
                 func_identifier = token  # Capture the function identifier
+                #check if identifier is in symbol table
+                function_name = token[0]
+                result = semantics_functions.get_symbol(function_name)
+                if not result:
+                    raise Exception(f"Erorr in line {line_num}: Function {function_name} is not declared")
                 current_state = "EXPECT_YR_OR_MKAY"
             else:
                 return f"ERROR at line {line_num}: Expected an IDENTIFIER after 'I IZ'"
@@ -41,6 +47,16 @@ def function_call_checker(tokens, line_num):
         elif current_state == "EXPECT_PARAMETER":
             # Collect tokens for parameter checking
             param_tokens = tokens[idx:-1]  # Slice the remaining tokens
+            #count number of parameters
+            num_of_param = 0
+            #count parameters
+            for i in param_tokens:
+                if i[1] != 'KEYWORD':
+                    num_of_param += 1
+            #check if the number of parameter is equal to the function declaration
+            actual_num = semantics_functions.get_symbol(function_name)['arity']
+            if num_of_param != actual_num:
+                raise Exception(f"Error in line {line_num}: Incorrect number of parameters")
             #catch case that there is no parameter after YR
             if param_tokens == []:
                 return f"ERROR at line {line_num}: Expected 'MKAY'"
