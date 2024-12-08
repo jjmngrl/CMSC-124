@@ -1,4 +1,4 @@
-from syntax_functions.flow_control_body_checker import flow_control_body_checker
+# from syntax_functions.flow_control_body_checker import flow_control_body_checker
 
 """
 Validate the LOLCODE switch-case structure (WTF?).
@@ -55,11 +55,11 @@ def switch_checker(classified_tokens):
                     if omg_stack:
                         omg_stack.pop()  # GTFO clears the current `OMG` case
                     current_state = "EXPECT_OMG_OR_END"
-                    print("OMG BODY:", current_block)
-                    result = flow_control_body_checker(current_block)
-                    if result != True:
-                        raise Exception(f"ERROR at line {line_num}: Invalid OMG body")
-                    print("valid OMG body")
+                    # print("OMG BODY:", current_block)
+                    # result = flow_control_body_checker(current_block)
+                    # if result != True:
+                    #     raise Exception(f"ERROR at line {line_num}: Invalid OMG body")
+                    # print("valid OMG body")
                     
                 elif token == "OMG":
                     #check if statement is valid
@@ -70,11 +70,11 @@ def switch_checker(classified_tokens):
                     if omg_stack and omg_stack[-1] == "OMG":
                         omg_stack.pop()  # Clear stack for OMG before OMGWTF
                     current_state = "EXPECT_DEFAULT_STATEMENT"
-                    print("OMGWTF BODY:", current_block)
-                    result = flow_control_body_checker(current_block)
-                    if result != True:
-                        raise Exception(f"ERROR at line {line_num}: Invalid OMGWTF body")
-                    print("valid OMGWTF body")
+                    # print("OMGWTF BODY:", current_block)
+                    # result = flow_control_body_checker(current_block)
+                    # if result != True:
+                    #     raise Exception(f"ERROR at line {line_num}: Invalid OMGWTF body")
+                    # print("valid OMGWTF body")
                 elif token == "OIC":
                     if omg_stack:
                         raise Exception (f"Error: Missing GTFO for one or more OMG cases before OIC at line {line_num}")
