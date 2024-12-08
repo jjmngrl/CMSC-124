@@ -14,10 +14,9 @@ Reads a LOLCODE file and removes comments and empty lines.
 -----------------------------------------------------------------------------------------
 """
 
-def read():
-    file = r"test case/03_arith.lol"
-    if file.endswith(".lol"):
-        with open(file, 'r') as f:
+def read(file_path):
+    if file_path.endswith(".lol"):
+        with open(file_path, 'r') as f:
             lines = f.readlines()
             data = []
             in_multiline_comment = False
@@ -183,14 +182,98 @@ def classifier(lines):
 
     return classified_lines
 
+def keyword_classifier(lines):
+    dict_matching = {
+        "KEYWORD": {
+            "Code Delimiters": ["HAI", "KTHXBYE", "OIC", "OMG", "WTF?", "OMGWTF"],
+            "Variable Declaration": ["I HAS A"],
+            "Variable Assignment": ["ITZ", "R", "IS NOW A"],
+            "Input/Output": ["VISIBLE", "GIMMEH"],
+            "Conditional Keywords": ["O RLY?", "YA RLY", "NO WAI", "MEBBE", "IF U SAY SO"],
+            "Loop Keywords": ["IM IN YR", "IM OUTTA YR", "WILE", "TIL"],
+            "Arithmetic Operators": ["SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF"],
+            "Comparison Operators": ["BOTH SAEM", "DIFFRINT"],
+            "Logical Operators": ["BOTH OF", "EITHER OF", "WON OF", "ALL OF", "ANY OF", "NOT"],
+            "Function Declaration and Calls": ["I IZ", "HOW IZ I", "FOUND YR"],
+            "Casting Keywords": ["MAEK", "NUMBR", "NUMBAR", "YARN", "TROOF"],
+            "Miscellaneous": ["AN", "MKAY", "GTFO", "BUHBYE", "NERFIN", "SMOOSH", "UPPIN", "WAZZUP", "NOOB"],
+            "Other Keywords": ["A"],
+            "Program Control": ["KTHXBYE", "OMG", "OMGWTF"]
+        },
+        # Literals
+        "NUMBR": r"^-?\d+$",
+        "NUMBAR": r"^-?\d+\.\d+$",
+        "YARN": r"^\".*\"$",  # Matches complete YARN (strings enclosed in quotes)
+        "TROOF": r"\b(WIN|FAIL)\b",
+        # Identifiers
+        "IDENTIFIER": r"^[a-z][a-z0-9_]*$",
+    }
+
+    classified_lines_gui = {}
+
+    for line_num, line in enumerate(lines, start=1):
+        tokens_with_classifications = []
+        tokens = line.split()  # Split the line into tokens
+
+        index = 0
+        while index < len(tokens):
+            token = tokens[index]
+            matched = False
+
+            # Handle YARN literals
+            if token.startswith('"'):
+                yarn_buffer = token
+                while not token.endswith('"') and index + 1 < len(tokens):
+                    index += 1
+                    token = tokens[index]
+                    yarn_buffer += f" {token}"
+                tokens_with_classifications.append([yarn_buffer.strip(), "YARN"])
+                index += 1
+                continue
+
+            # Match multi-word keywords first
+            for category, keywords in dict_matching["KEYWORD"].items():
+                for keyword in keywords:
+                    keyword_parts = keyword.split()
+                    if tokens[index:index + len(keyword_parts)] == keyword_parts:
+                        tokens_with_classifications.append([keyword, category])  # Use the category here
+                        index += len(keyword_parts)
+                        matched = True
+                        break
+            if matched:
+                break
+
+            # Match single-word patterns
+            for lexeme_type, pattern in dict_matching.items():
+                if lexeme_type == "KEYWORD":
+                    continue  # Skip multi-word keywords; already handled
+                if re.fullmatch(pattern, token):
+                    tokens_with_classifications.append([token, lexeme_type])
+                    matched = True
+                    break
+
+            # If no match, classify as TROOF, IDENTIFIER, or UNCLASSIFIED
+            if not matched:
+                if re.fullmatch(dict_matching["TROOF"], token):
+                    tokens_with_classifications.append([token, "TROOF"])
+                elif re.fullmatch(dict_matching["IDENTIFIER"], token):
+                    tokens_with_classifications.append([token, "IDENTIFIER"])
+                else:
+                    tokens_with_classifications.append([token, "UNCLASSIFIED"])
+
+            index += 1
+
+        classified_lines_gui[line_num] = tokens_with_classifications
+
+    return classified_lines_gui
 
 """
 -----------------------------------------------------------------------------------------
 Main function to execute the lexical analyzer.
 -----------------------------------------------------------------------------------------
 """
-def lex_main():
-    text = read()
+def lex_main(file_path):
+    text = read(file_path)
     classified_tokens = classifier(text)
     
     # Print the classified tokens dictionary
@@ -198,8 +281,8 @@ def lex_main():
         formatted_classifications = ', '.join(
             [f"[{repr(token)}, {repr(classification)}]" for token, classification in classifications]
         )
-        # print(f"Line {line_num}: {formatted_classifications}") 
+        print(f"Line {line_num}: {formatted_classifications}") 
         
     return classified_tokens
 
-lex_main()
+# lex_main()
