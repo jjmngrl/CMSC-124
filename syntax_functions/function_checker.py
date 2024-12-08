@@ -9,7 +9,7 @@ from syntax_functions import ifelse_checker
 from syntax_functions import switch_checker
 from syntax_functions import loop_checker
 from syntax_functions import expression_checker
-
+from syntax_functions import semantics_functions
 """ 
 Function to check if smoosh (concatenation) is valid
 Parameter: tokens for the smoosh
@@ -37,14 +37,20 @@ def function_checker(code_block):
     flag = False
 
     if ls_of_values[0][0][0] == 'HOW IZ I' and ls_of_values[0][1][1] == "IDENTIFIER":
+        #add function to the symbol table
+        print(semantics_functions.symbols)
         #If function has parameter/s, check if the parameters are valid parameters
         if len(ls_of_values[0]) > 2:
-            print("Function has multiparameter")
             #check if function header has 'YR'
             if ls_of_values[0][2][0] == "YR":
                 parameters = ls_of_values[0][3:]
+                num_of_param = 0
+                #count parameters
+                for i in parameters:
+                    if i[1] != 'KEYWORD':
+                        num_of_param += 1
+                semantics_functions.add_symbol(ls_of_values[0][1][0], {"type": "function", "value": None, "value_type": "NOOB", "arity":num_of_param, "reference_environment": "main"})
                 if parameter_checker(parameters,line_of_func) == True:
-                    print("parameter/s is/are valid")
                     parameter_flag == True
                 else:
                     parameter_flag == False
