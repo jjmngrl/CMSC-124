@@ -107,16 +107,16 @@ def semantics(code_block, classified_tokens):
         #     # current_line += 1
 
         # #Catch function call
-        # elif tokens[0][0] == "I IZ":
-        #     print(f"Function call at line {current_line}")
-        #     result = func_call_checker.function_call_checker(tokens, current_line)
-        #     if result == True:
-        #         print(f"Valid function call at line {current_line}")
-        #         statement_flag = True
-        #     else:
-        #         raise Exception(result)
+        elif tokens[0][0] == "I IZ":
+            print(f"Function call at line {current_line}")
+            result = func_call_checker.function_call_checker(tokens, current_line)
+            if result == True:
+                print(f"Valid function call at line {current_line}")
+                statement_flag = True
+            else:
+                raise Exception(result)
 
-        #     current_line += 1
+            current_line += 1
 
         #catch loops
         # elif tokens[0][0] == "IM IN YR":
@@ -166,7 +166,7 @@ def semantics(code_block, classified_tokens):
         #catch assignment
         elif tokens[1][0] == "R" and len(tokens) == 3:
             print(f"Assignment statement at line {current_line}")
-            result =  assignment_checker.assignment_semantics(current_line, tokens)
+            result =  assignment_checker.assignment_checker(current_line, tokens)
             if result:
                 print("Valid assignment statent")
                 statement_flag = True
